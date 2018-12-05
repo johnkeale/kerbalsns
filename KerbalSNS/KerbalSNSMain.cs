@@ -6,6 +6,7 @@ using UnityEngine;
 using KSP.UI.Screens;
 using UnityEngine.UI;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace KerbalSNS
 {
@@ -176,6 +177,7 @@ namespace KerbalSNS
         
         enum BrowserType { Stories, Shoutouts };
 
+        // TODO learn to use UIStyle
         private void spawnBrowserDialog(BrowserType browserType)
         {
             String dialogName = null;
@@ -366,7 +368,35 @@ namespace KerbalSNS
         {
             List<DialogGUIHorizontalLayout> scrollElementsList = new List<DialogGUIHorizontalLayout>();
 
-            // TODO add KSC like header
+            DialogGUIHorizontalLayout header = new DialogGUIHorizontalLayout(
+                TextAnchor.MiddleLeft,
+                new DialogGUIBase[] {
+                    new DialogGUIImage(
+                        new Vector2(36, 36),
+                        new Vector2(0, 0),
+                        Color.white,
+                        GameDatabase.Instance.GetTexture("KerbalSNS/ksp", false)
+                    ),
+                    new DialogGUILabel("KSC", true, true),
+                    new DialogGUIFlexibleSpace(),
+                }
+            );
+            scrollElementsList.Add(header);
+            DialogGUIHorizontalLayout navBar = new DialogGUIHorizontalLayout(
+                TextAnchor.MiddleCenter,
+                new DialogGUIBase[] {
+                    new DialogGUILabel("<color=#44E6FF><u>Missions</u></color>", true, true),
+                    new DialogGUILabel("|", true, true),
+                    new DialogGUILabel("<color=#44E6FF><u>Galleries</u></color>", true, true),
+                    new DialogGUILabel("|", true, true),
+                    new DialogGUILabel("<color=#4422EE><u><b>Stories</b></u></color>", true, true),
+                    new DialogGUILabel("|", true, true),
+                    new DialogGUILabel("<color=#44E6FF><u>Programs</u></color>", true, true),
+                    new DialogGUILabel("|", true, true),
+                    new DialogGUILabel("<color=#44E6FF><u>About</u></color>", true, true),
+                }
+            );
+            scrollElementsList.Add(navBar);
 
             List<KerbStory> postedStoriesList = KerbalSNSScenario.Instance.GetStoryList; // TODO fix bad name
             postedStoriesList = postedStoriesList.OrderByDescending(s => s.postedTime).ToList();
@@ -375,23 +405,15 @@ namespace KerbalSNS
 				foreach (KerbStory story in postedStoriesList)
                 {
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
-                        true,
-                        false,
-                        4,
-                        new RectOffset(),
                         TextAnchor.MiddleCenter,
                         new DialogGUIBase[] {
                             new DialogGUILabel(
-                                "---------------------------------------------------------------------------",
+                                "--------------------------------------------------------------------------------",
                                 320,
                                 25)
                         }
                     ));
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
-						true,
-						false,
-						4,
-						new RectOffset(),
 						TextAnchor.MiddleCenter,
 						new DialogGUIBase[] {
 							new DialogGUILabel(
@@ -401,11 +423,16 @@ namespace KerbalSNS
                                 true)
 						}
 					));
-					scrollElementsList.Add(new DialogGUIHorizontalLayout(
-						true,
-						false,
-						4,
-						new RectOffset(),
+                    scrollElementsList.Add(new DialogGUIHorizontalLayout(
+                        TextAnchor.MiddleCenter,
+                        new DialogGUIBase[] {
+                            new DialogGUILabel(
+                                "",
+                                true,
+                                true)
+                        }
+                    ));
+                    scrollElementsList.Add(new DialogGUIHorizontalLayout(
 						TextAnchor.MiddleCenter,
 						new DialogGUIBase[] {
 							new DialogGUILabel(story.postedStoryText, true, true)
@@ -413,26 +440,21 @@ namespace KerbalSNS
 					));
 				}
 
-			} else
+                // TODO limit loaded stories
+
+			}
+            else
             {
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
-                    true,
-                    false,
-                    4,
-                    new RectOffset(),
                     TextAnchor.MiddleCenter,
                     new DialogGUIBase[] {
-                            new DialogGUILabel(
-                                "---------------------------------------------------------------------------",
-                                320,
-                                25)
+                        new DialogGUILabel(
+                            "--------------------------------------------------------------------------------",
+                            320,
+                            25)
                     }
                 ));
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
-					true,
-					false,
-					4,
-					new RectOffset(),
 					TextAnchor.MiddleCenter,
 					new DialogGUIBase[] {
 						new DialogGUILabel("No stories yet.", 320, 25)
@@ -449,54 +471,31 @@ namespace KerbalSNS
             List<DialogGUIHorizontalLayout> scrollElementsList = new List<DialogGUIHorizontalLayout>();
 
             DialogGUIHorizontalLayout header = new DialogGUIHorizontalLayout(
-                true,
-                false,
-                4,
-                new RectOffset(),
-                TextAnchor.MiddleCenter,
+                TextAnchor.MiddleLeft,
                 new DialogGUIBase[] {
-                    new DialogGUIButton(
-                        "o",
-                        delegate { },
-                        () => false,
-                        false
+                    new DialogGUIImage(
+                        new Vector2(36, 36),
+                        new Vector2(0, 0),
+                        Color.white,
+                        GameDatabase.Instance.GetTexture("KerbalSNS/shouts", false)
                     ),
-                    new DialogGUILabel("Home", true, true)
+                    new DialogGUILabel("Home", true, true),
+                    new DialogGUIFlexibleSpace()
                 }
             );
             scrollElementsList.Add(header);
             DialogGUIHorizontalLayout navBar = new DialogGUIHorizontalLayout(
-                true,
-                false,
-                4,
-                new RectOffset(),
                 TextAnchor.MiddleCenter,
                 new DialogGUIBase[] {
-                    new DialogGUIButton(
-                        "Home",
-                        delegate { },
-                        () => false,
-                        false
-                    ),
-                    new DialogGUIButton(
-                        "Search",
-                        delegate { },
-                        () => false,
-                        false
-                    ),
-                    new DialogGUIButton(
-                        "Notifs",
-                        delegate { },
-                        () => false,
-                        false
-                    ),
-                    new DialogGUIButton(
-                        "Message",
-                        delegate { },
-                        () => false,
-                        false
-                    ),
-                    new DialogGUILabel("Home", true, true)
+                    new DialogGUIFlexibleSpace(),
+                    new DialogGUILabel("<color=#4422EE><u><b>Feed</b></u></color>", true, true),
+                    new DialogGUIFlexibleSpace(),
+                    new DialogGUILabel("<color=#44E6FF><u>Search</u></color>", true, true),
+                    new DialogGUIFlexibleSpace(),
+                    new DialogGUILabel("<color=#44E6FF><u>Notifs</u></color>", true, true),
+                    new DialogGUIFlexibleSpace(),
+                    new DialogGUILabel("<color=#44E6FF><u>Messages</u></color>", true, true),
+                    new DialogGUIFlexibleSpace(),
                 }
             );
             scrollElementsList.Add(navBar);
@@ -508,32 +507,35 @@ namespace KerbalSNS
             foreach (KerbShoutout shoutout in shoutoutList)
 			{
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
-                    true,
-                    false,
-                    4,
-                    new RectOffset(),
                     TextAnchor.MiddleCenter,
                     new DialogGUIBase[] {
                         new DialogGUILabel(
-                            "---------------------------------------------------------------------------",
+                            "--------------------------------------------------------------------------------",
                             320,
                             25)
                     }
                 ));
                 
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
-					true,
-					false,
-					4,
-					new RectOffset(),
 					TextAnchor.MiddleCenter,
 					new DialogGUIBase[] {
                         // this is supposed to be a profile image
-                        new DialogGUIButton(
-                            "o",
-                            delegate { },
-                            () => false,
-                            false
+                        new DialogGUIVerticalLayout(
+                            10,
+                            25,
+                            4,
+                            new RectOffset(2, 2, 4, 4),
+                            TextAnchor.UpperCenter,
+                            new DialogGUIBase[] {
+                                new DialogGUIImage(
+                                    new Vector2(20, 20),
+                                    new Vector2(0, 0),
+                                    Color.white,
+                                    GameDatabase.Instance.GetTexture(
+                                        "KerbalSNS/kerbal" + (mizer.Next(2) + 1),
+                                        false)
+                                )
+                            }
                         ),
                         // where the tweet is
                         new DialogGUIVerticalLayout(
@@ -545,17 +547,33 @@ namespace KerbalSNS
                             new DialogGUIBase[] {
                                 new DialogGUILabel(
                                     shoutout.postedBy
-                                    + " @" + shoutout.postedBy
+                                    + " @" + makeLikeUsername(shoutout.postedBy)
                                     + " " + getRelativeTime(shoutout.postedTime),
                                     true,
                                     true),
-                                new DialogGUILabel(shoutout.shoutout, true, true)
+                                new DialogGUILabel(shoutout.postedShoutout, true, true)
                             }
                         )
                     }
 				));
+                scrollElementsList.Add(new DialogGUIHorizontalLayout(
+                    TextAnchor.MiddleCenter,
+                    new DialogGUIBase[] {
+                        new DialogGUIFlexibleSpace(),
+                        new DialogGUILabel("<color=#44E6FF><u>Reshout</u></color>", true, true),
+                        new DialogGUIFlexibleSpace(),
+                        new DialogGUILabel("<color=#44E6FF><u>Respond</u></color>", true, true),
+                        new DialogGUIFlexibleSpace(),
+                        new DialogGUILabel("<color=#44E6FF><u>Heart</u></color>", true, true),
+                        new DialogGUIFlexibleSpace(),
+                        new DialogGUILabel("<color=#44E6FF><u>Share</u></color>", true, true),
+                        new DialogGUIFlexibleSpace(),
+                    }
+                ));
             }
-            
+
+            // TODO limit loaded tweets (load more button)
+
             return scrollElementsList;
         }
         
@@ -754,10 +772,9 @@ namespace KerbalSNS
         
         private List<KerbShoutout> updateShoutoutsIfNeeded(List<KerbShoutout> shoutoutList)
         {
-            List<KerbShoutout> updatedShoutoutList = shoutoutList;
-
             double now = Planetarium.GetUniversalTime();
-            updatedShoutoutList = purgeOldShoutouts(updatedShoutoutList, now, KSPUtil.dateTimeFormatter.Hour);
+            List<KerbShoutout> updatedShoutoutList = 
+                purgeOldShoutouts(shoutoutList, now, KSPUtil.dateTimeFormatter.Hour);
 
             if (updatedShoutoutList.Count == 0 || updatedShoutoutList.Count < KerbalSNSSettings.MaxNumOfShoutouts)
             {
@@ -766,7 +783,30 @@ namespace KerbalSNS
                     // TODO fetch shoutouts based on current reputation, and get random from there
                     KerbShoutout baseShoutout = baseShoutoutList[mizer.Next(baseShoutoutList.Count)];
 
-                    KerbShoutout shoutout = createShoutout(baseShoutout, randomKerbalName()); // TODO check if existing as an applicant or crew
+                    String postedBy = randomKerbalName();
+                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.Any 
+                        || baseShoutout.poster == KerbShoutout.ShoutoutPoster.Citizen)
+                    {
+                        postedBy = randomKerbalName(); // TODO add checking to see if not currently in roster
+                    }
+                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.VesselCrew)
+                    {
+                        postedBy = randomKerbalName(); // TODO get from vesel crews
+                    }
+                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.KSCEmployee)
+                    {
+                        postedBy = "KSC";
+                    }
+                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.KSC)
+                    {
+                        postedBy = "KSC";
+                    }
+                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.Specific)
+                    {
+                        postedBy = baseShoutout.specificPoster;
+                    }
+
+                    KerbShoutout shoutout = createShoutout(baseShoutout, postedBy); // TODO check if existing as an applicant or crew
                     shoutout.postedTime = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
 
                     updatedShoutoutList.Add(shoutout);
@@ -812,12 +852,62 @@ namespace KerbalSNS
             shoutout.postedBy = postedBy;
             shoutout.postedTime = Planetarium.GetUniversalTime();
 
-            shoutout.postedShoutout = baseShoutout.shoutout;
+            shoutout.postedShoutout = 
+                Regex.Replace(baseShoutout.shoutout, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
+            
             // TODO add some formatting if needed
 
             return shoutout;
         }
-        
+
+        private String makeLikeUsername(String name)
+        {
+            String username = name;
+
+            int r = mizer.Next(4);
+            if (r == 0)
+            {
+                username = Regex.Replace(username, " ", "", RegexOptions.IgnoreCase);
+            }
+            else if (r == 1)
+            {
+                username = Regex.Replace(username, " ", "_", RegexOptions.IgnoreCase);
+            }
+            else
+            {
+                username = CrewGenerator.RemoveLastName(name);
+            }
+            
+            r = mizer.Next(8);
+            if (r < 3)
+            {
+                username = Regex.Replace(username, "o", "0", RegexOptions.IgnoreCase);
+            }
+            r = mizer.Next(8);
+            if (r < 3)
+            {
+                username = Regex.Replace(username, "i", "1", RegexOptions.IgnoreCase);
+            }
+            r = mizer.Next(8);
+            if (r < 3)
+            {
+                username = Regex.Replace(username, "l", "2", RegexOptions.IgnoreCase);
+            }
+            r = mizer.Next(8);
+            if (r < 3)
+            {
+                username = Regex.Replace(username, "e", "3", RegexOptions.IgnoreCase);
+            }
+
+            r = mizer.Next(4);
+            if (r < 1)
+            {
+                username = username + mizer.Next(1000);
+            }
+
+            return username;
+        }
+
         private String randomKerbalName()
         {
             return CrewGenerator.GetRandomName((ProtoCrewMember.Gender) mizer.Next(2), mizer);

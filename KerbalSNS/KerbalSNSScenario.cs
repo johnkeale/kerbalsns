@@ -66,7 +66,7 @@ namespace KerbalSNS
         {
             get
             {
-                return this.storyList;
+                return this.storyList.ToList();
             }
         }
 
@@ -74,7 +74,7 @@ namespace KerbalSNS
         {
             get
             {
-                return this.shoutoutList;
+                return this.shoutoutList.ToList();
             }
         }
 
@@ -83,14 +83,19 @@ namespace KerbalSNS
             this.storyList.Add(story);
         }
 
-        public void RegisterShoutout(KerbShoutout kerbShoutout)
+        public void DeleteStory(KerbStory story)
         {
-            this.shoutoutList.Add(kerbShoutout);
+            this.storyList.Remove(story);
         }
 
-        public void DeleteShoutout(KerbShoutout kerbShoutout)
+        public void RegisterShoutout(KerbShoutout shoutout)
         {
-            this.shoutoutList.Remove(kerbShoutout);
+            this.shoutoutList.Add(shoutout);
+        }
+
+        public void DeleteShoutout(KerbShoutout shoutout)
+        {
+            this.shoutoutList.Remove(shoutout);
         }
         #endregion
 
