@@ -25,7 +25,7 @@ namespace KerbalSNS
             VesselCrew,
             KSCEmployee,
             KSC,
-            Specific, // TODO
+            Specific,
         }
 
         public enum ShoutoutType
@@ -35,15 +35,15 @@ namespace KerbalSNS
             LameJoke,
             Crew,
             KSCNews,
-			NewsReponse, // TODO
-			Random, // TODO
-			Nonsense, // TODO
+			NewsReponse,
+			Random,
+			Nonsense,
         }
 
         public String name { get; set; }
         public RepLevel repLevel { get; set; }
         public ShoutoutPoster poster { get; set; }
-		public String specificPoster; // TODO
+		public String specificPoster { get; set; }
         public ShoutoutType type { get; set; }
         public String shoutout { get; set; }
 		public String reqdMilestone; // TODO
@@ -101,6 +101,15 @@ namespace KerbalSNS
             {
                 this.poster = ShoutoutPoster.KSC;
             }
+            if ("specific".Equals(poster))
+            {
+                this.poster = ShoutoutPoster.Specific;
+            }
+
+            if (node.HasValue("specificPoster"))
+            {
+                this.specificPoster = node.GetValue("specificPoster");
+            }
 
             this.type = ShoutoutType.Unknown;
             String type = node.GetValue("type");
@@ -120,12 +129,24 @@ namespace KerbalSNS
             {
                 this.type = ShoutoutType.KSCNews;
             }
-
+            if ("newsReponse".Equals(type))
+            {
+                this.type = ShoutoutType.NewsReponse;
+            }
+            if ("random".Equals(type))
+            {
+                this.type = ShoutoutType.Random;
+            }
+            if ("nonsense".Equals(type))
+            {
+                this.type = ShoutoutType.Nonsense;
+            }
+            
             this.shoutout = node.GetValue("shoutout");
 
             this.postedId = node.GetValue("postedId");
             this.postedBy = node.GetValue("postedBy");
-            if (node.GetValue("postedTime") != null)
+            if (node.HasValue("postedTime"))
             {
                 this.postedTime = Double.Parse(node.GetValue("postedTime"));
             }
@@ -187,6 +208,12 @@ namespace KerbalSNS
             {
                 node.SetValue("poster", "ksc", true);
             }
+            if (this.poster == ShoutoutPoster.Specific)
+            {
+                node.SetValue("poster", "specific", true);
+            }
+
+            node.SetValue("specificPoster", this.specificPoster, true);
 
             if (this.type == ShoutoutType.Unknown)
             {
@@ -207,6 +234,19 @@ namespace KerbalSNS
             if (this.type == ShoutoutType.KSCNews)
             {
                 node.SetValue("type", "kscNews", true);
+            }
+            if (this.type == ShoutoutType.NewsReponse)
+            {
+                node.SetValue("type", "newsReponse", true);
+            }
+            if (this.type == ShoutoutType.Random)
+            {
+                node.SetValue("type", "random", true);
+            }
+            if (this.type == ShoutoutType.Nonsense)
+            {
+                node.SetValue("type", "nonsense", true);
+                ;
             }
 
             node.SetValue("shoutout", this.shoutout, true);
