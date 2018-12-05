@@ -143,7 +143,7 @@ namespace KerbalSNS
                 minTimeBetweenStories = 10; // 600
             }
 
-            if (this.lastStoryPostedTime + minTimeBetweenStories < Planetarium.GetUniversalTime()) // XXX why less than?
+            if (this.lastStoryPostedTime + minTimeBetweenStories < Planetarium.GetUniversalTime())
             {
                 this.lastStoryPostedTime = Planetarium.GetUniversalTime();
 				
@@ -755,29 +755,21 @@ namespace KerbalSNS
             double now = Planetarium.GetUniversalTime();
             double delta =  now - time;
 
-            /*
-            [LOG 01:34:04.610] Year: 9201600
-            [LOG 01:34:04.611] Day: 21600
-            [LOG 01:34:04.612] Hour: 3600
-            [LOG 01:34:04.613] Minute: 60
-			postedTime = 9478140.1349137779
-            */
+            int years = (((int)delta) / KSPUtil.dateTimeFormatter.Year) + 1;
 
-            int years = ((int)time) / KSPUtil.dateTimeFormatter.Year;
+            int remainder = ((int)delta) % KSPUtil.dateTimeFormatter.Year;
+            int days = (remainder / KSPUtil.dateTimeFormatter.Day) + 1;
 
-            int remainder = ((int)time) % KSPUtil.dateTimeFormatter.Year;
-            int days = remainder / KSPUtil.dateTimeFormatter.Day;
+            remainder = ((int)delta) % KSPUtil.dateTimeFormatter.Day;
+            int hours = (remainder / KSPUtil.dateTimeFormatter.Hour) + 1;
 
-            remainder = ((int)time) % KSPUtil.dateTimeFormatter.Day;
-            int hours = remainder / KSPUtil.dateTimeFormatter.Hour;
-
-            remainder = ((int)time) % KSPUtil.dateTimeFormatter.Hour;
+            remainder = ((int)delta) % KSPUtil.dateTimeFormatter.Hour;
             int minutes = remainder / KSPUtil.dateTimeFormatter.Minute;
 
             int seconds = remainder % KSPUtil.dateTimeFormatter.Minute;
 
             if (delta < 1 * KSPUtil.dateTimeFormatter.Minute)
-                return seconds == 1 ? "one second ago" :seconds + " seconds ago";
+                return seconds <= 1 ? "one second ago" : seconds + " seconds ago";
 
             if (delta < 2 * KSPUtil.dateTimeFormatter.Minute)
                 return "a minute ago";
@@ -794,7 +786,7 @@ namespace KerbalSNS
             if (delta < 12 * KSPUtil.dateTimeFormatter.Hour)
                 return "yesterday";
 
-            if (delta < 425 * KSPUtil.dateTimeFormatter.Day)
+            if (delta < 424 * KSPUtil.dateTimeFormatter.Day)
                 return days + " days ago";
 
             return years <= 1 ? "one year ago" : years + " years ago";
