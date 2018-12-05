@@ -25,6 +25,7 @@ namespace KerbalSNS
             VesselCrew,
             KSCEmployee,
             KSC,
+            Specific, // TODO
         }
 
         public enum ShoutoutType
@@ -34,13 +35,18 @@ namespace KerbalSNS
             LameJoke,
             Crew,
             KSCNews,
+			NewsReponse, // TODO
+			Random, // TODO
+			Nonsense, // TODO
         }
 
         public String name { get; set; }
         public RepLevel repLevel { get; set; }
         public ShoutoutPoster poster { get; set; }
+		public String specificPoster; // TODO
         public ShoutoutType type { get; set; }
         public String shoutout { get; set; }
+		public String reqdMilestone; // TODO
 
         public String postedId { get; set; }
         public String postedBy { get; set; }

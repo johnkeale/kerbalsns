@@ -19,6 +19,9 @@ namespace KerbalSNS
 
         [GameParameters.CustomIntParameterUI("Minimum story interval hours", maxValue = 24, minValue = 0, stepSize = 1, toolTip = "The minimum interval between stories happening, in hours.", autoPersistance = true)]
         public int minStoryIntervalHours = 0;
+
+        [GameParameters.CustomIntParameterUI("Maximum number of shoutouts", maxValue = 100, minValue = 0, stepSize = 1, toolTip = "The maxmimum number of shoutouts to show on the browser.", autoPersistance = true)]
+        public int maxNumOfShoutouts = 24;
         #endregion
 
         #region parameter getter methods
@@ -55,6 +58,15 @@ namespace KerbalSNS
             {
                 KerbalSNSSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<KerbalSNSSettings>();
                 return settings.minStoryIntervalHours;
+            }
+        }
+
+        public static int MaxNumOfShoutouts
+        {
+            get
+            {
+                KerbalSNSSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<KerbalSNSSettings>();
+                return settings.maxNumOfShoutouts;
             }
         }
         #endregion
