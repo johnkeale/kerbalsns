@@ -150,7 +150,7 @@ namespace KerbalSNS
                 double postStoryChance = mizer.Next(100) + 1;
                 if (postStoryChance <= KerbalSNSSettings.StoryChance)
                 {
-                    postStory(); // TODO rename
+                    postStory();
                 }
             }
         }
@@ -197,13 +197,13 @@ namespace KerbalSNS
                 dialogElementsList.Add(new DialogGUIHorizontalLayout(
                     new DialogGUIBase[] {
                         new DialogGUIButton(
-                            "Browse Stories",
+                            "KSC's Random Stories",
                             delegate { },
                             () => false,
                             true
                         ),
                         new DialogGUIButton(
-                            "Browse Shoutouts",
+                            "Kerbshouts!",
                             delegate {
                                 spawnBrowserDialog(BrowserType.Shoutouts);
                             },
@@ -225,14 +225,14 @@ namespace KerbalSNS
                 dialogElementsList.Add(new DialogGUIHorizontalLayout(
                     new DialogGUIBase[] {
                         new DialogGUIButton(
-                            "Browse Stories",
+                            "KSC's Random Stories",
                             delegate {
                                 spawnBrowserDialog(BrowserType.Stories);
                             },
                             true
                         ),
                         new DialogGUIButton(
-                            "Browse Shoutouts",
+                            "Kerbshouts!",
                             delegate { },
                             () => false,
                             true
@@ -281,18 +281,18 @@ namespace KerbalSNS
                         },
                         true
                     ),
-                    new DialogGUILabel(dummyUrl, true, false),
+                    new DialogGUILabel("  " + dummyUrl, true, false),
                 }
             ));
 
             List<DialogGUIHorizontalLayout> scrollElementsList = null;
             if (browserType == BrowserType.Stories)
             {
-                scrollElementsList = buildKerbStoriesScrollElementsList();
+                scrollElementsList = buildStoriesScrollElementsList();
             }
             else if (browserType == BrowserType.Shoutouts)
             {
-                scrollElementsList = buildKerbShoutoutsScrollElementsList();
+                scrollElementsList = buildShoutoutsScrollElementsList();
             }
 
             float scrollElementsHeight = 0;
@@ -352,7 +352,7 @@ namespace KerbalSNS
                 new MultiOptionDialog(
                     dialogName,
                     "",
-                    "Browse Stories & Shoutouts",
+                    "Kerbal SNS",
                     UISkinManager.defaultSkin,
                     new Rect(0.5f, 0.5f, 340, 640),
                     dialogElementsList.ToArray()
@@ -362,9 +362,11 @@ namespace KerbalSNS
             );
         }
         
-        private List<DialogGUIHorizontalLayout> buildKerbStoriesScrollElementsList()
+        private List<DialogGUIHorizontalLayout> buildStoriesScrollElementsList()
         {
             List<DialogGUIHorizontalLayout> scrollElementsList = new List<DialogGUIHorizontalLayout>();
+
+            // TODO add KSC like header
 
             List<KerbStory> postedStoriesList = KerbalSNSScenario.Instance.GetStoryList; // TODO fix bad name
             postedStoriesList = postedStoriesList.OrderByDescending(s => s.postedTime).ToList();
@@ -380,7 +382,7 @@ namespace KerbalSNS
                         TextAnchor.MiddleCenter,
                         new DialogGUIBase[] {
                             new DialogGUILabel(
-                            "-------------------------------------------------",
+                                "---------------------------------------------------------------------------",
                                 320,
                                 25)
                         }
@@ -410,8 +412,23 @@ namespace KerbalSNS
 						}
 					));
 				}
-			} else {
-				scrollElementsList.Add(new DialogGUIHorizontalLayout(
+
+			} else
+            {
+                scrollElementsList.Add(new DialogGUIHorizontalLayout(
+                    true,
+                    false,
+                    4,
+                    new RectOffset(),
+                    TextAnchor.MiddleCenter,
+                    new DialogGUIBase[] {
+                            new DialogGUILabel(
+                                "---------------------------------------------------------------------------",
+                                320,
+                                25)
+                    }
+                ));
+                scrollElementsList.Add(new DialogGUIHorizontalLayout(
 					true,
 					false,
 					4,
@@ -421,19 +438,71 @@ namespace KerbalSNS
 						new DialogGUILabel("No stories yet.", 320, 25)
 					}
 				));
+
 			}
 
             return scrollElementsList;
         }
 
-        private List<DialogGUIHorizontalLayout> buildKerbShoutoutsScrollElementsList()
+        private List<DialogGUIHorizontalLayout> buildShoutoutsScrollElementsList()
         {
             List<DialogGUIHorizontalLayout> scrollElementsList = new List<DialogGUIHorizontalLayout>();
-            
-            List<KerbShoutout> shoutoutList = KerbalSNSScenario.Instance.GetShoutoutList; // TODO fix bad name
-            shoutoutList = shoutoutList.OrderByDescending(s => s.postedTime).ToList();
 
-            updateShoutoutsIfNeeded(shoutoutList);
+            DialogGUIHorizontalLayout header = new DialogGUIHorizontalLayout(
+                true,
+                false,
+                4,
+                new RectOffset(),
+                TextAnchor.MiddleCenter,
+                new DialogGUIBase[] {
+                    new DialogGUIButton(
+                        "o",
+                        delegate { },
+                        () => false,
+                        false
+                    ),
+                    new DialogGUILabel("Home", true, true)
+                }
+            );
+            scrollElementsList.Add(header);
+            DialogGUIHorizontalLayout navBar = new DialogGUIHorizontalLayout(
+                true,
+                false,
+                4,
+                new RectOffset(),
+                TextAnchor.MiddleCenter,
+                new DialogGUIBase[] {
+                    new DialogGUIButton(
+                        "Home",
+                        delegate { },
+                        () => false,
+                        false
+                    ),
+                    new DialogGUIButton(
+                        "Search",
+                        delegate { },
+                        () => false,
+                        false
+                    ),
+                    new DialogGUIButton(
+                        "Notifs",
+                        delegate { },
+                        () => false,
+                        false
+                    ),
+                    new DialogGUIButton(
+                        "Message",
+                        delegate { },
+                        () => false,
+                        false
+                    ),
+                    new DialogGUILabel("Home", true, true)
+                }
+            );
+            scrollElementsList.Add(navBar);
+
+            List<KerbShoutout> shoutoutList = KerbalSNSScenario.Instance.GetShoutoutList; // TODO fix bad name
+            shoutoutList = updateShoutoutsIfNeeded(shoutoutList);
             shoutoutList = shoutoutList.OrderByDescending(s => s.postedTime).ToList();
 
             foreach (KerbShoutout shoutout in shoutoutList)
@@ -446,7 +515,7 @@ namespace KerbalSNS
                     TextAnchor.MiddleCenter,
                     new DialogGUIBase[] {
                         new DialogGUILabel(
-                            "-------------------------------------------------",
+                            "---------------------------------------------------------------------------",
                             320,
                             25)
                     }
@@ -459,12 +528,14 @@ namespace KerbalSNS
 					new RectOffset(),
 					TextAnchor.MiddleCenter,
 					new DialogGUIBase[] {
+                        // this is supposed to be a profile image
                         new DialogGUIButton(
                             "o",
                             delegate { },
                             () => false,
                             false
                         ),
+                        // where the tweet is
                         new DialogGUIVerticalLayout(
                             10,
                             25,
@@ -605,7 +676,7 @@ namespace KerbalSNS
                 story.postedStoryText,
                 MessageSystemButton.MessageButtonColor.BLUE,
                 MessageSystemButton.ButtonIcons.MESSAGE
-                );
+            );
 
             MessageSystem.Instance.AddMessage(message);
         }
@@ -651,7 +722,6 @@ namespace KerbalSNS
             return viableKerbalList;
         }
 
-        // XXX
         private KerbStory createStory(KerbStory baseStory, Vessel vessel, List<ProtoCrewMember> kerbalList)
         {
             KerbStory story = new KerbStory();
@@ -682,51 +752,52 @@ namespace KerbalSNS
             return story;
         }
         
-        private void updateShoutoutsIfNeeded(List<KerbShoutout> shoutoutList)
+        private List<KerbShoutout> updateShoutoutsIfNeeded(List<KerbShoutout> shoutoutList)
         {
-            double now = Planetarium.GetUniversalTime();
-            purgeOldShoutouts(shoutoutList, now, KSPUtil.dateTimeFormatter.Hour);
+            List<KerbShoutout> updatedShoutoutList = shoutoutList;
 
-            if (shoutoutList.Count == 0 || shoutoutList.Count < 40) // 40 minimum tweets for now
+            double now = Planetarium.GetUniversalTime();
+            updatedShoutoutList = purgeOldShoutouts(updatedShoutoutList, now, KSPUtil.dateTimeFormatter.Hour);
+
+            if (updatedShoutoutList.Count == 0 || updatedShoutoutList.Count < KerbalSNSSettings.MaxNumOfShoutouts)
             {
-                int max = mizer.Next(16);
-                for (int i = 0; i < max; i++)
+                for (int i = updatedShoutoutList.Count; i < KerbalSNSSettings.MaxNumOfShoutouts; i++)
                 {
+                    // TODO fetch shoutouts based on current reputation, and get random from there
                     KerbShoutout baseShoutout = baseShoutoutList[mizer.Next(baseShoutoutList.Count)];
 
-                    String randomName = randomKerbalName();
-                    double time = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1;
+                    KerbShoutout shoutout = createShoutout(baseShoutout, randomKerbalName()); // TODO check if existing as an applicant or crew
+                    shoutout.postedTime = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
 
-                    KerbShoutout shoutout = createShoutout(baseShoutout, randomName, time);
-
-                    shoutoutList.Add(shoutout);
+                    updatedShoutoutList.Add(shoutout);
                     KerbalSNSScenario.Instance.RegisterShoutout(shoutout);
                 }
-
-                //createNewShoutouts()
             }
+
+            return updatedShoutoutList;
         }
 
-        private void purgeOldShoutouts(List<KerbShoutout> shoutoutList, double baseTime, double deltaTime)
+        private List<KerbShoutout> purgeOldShoutouts(List<KerbShoutout> shoutoutList, double baseTime, double deltaTime)
         {
-            List<KerbShoutout> shoutoutsToRemove = new List<KerbShoutout>();
+            List<KerbShoutout> freshShoutoutsList = new List<KerbShoutout>();
 
             foreach (KerbShoutout shoutout in shoutoutList)
             {
-                if (baseTime - shoutout.postedTime > deltaTime)
+                // shoutout still new
+                if (baseTime - shoutout.postedTime <= deltaTime)
                 {
-                    shoutoutsToRemove.Add(shoutout);
+                    freshShoutoutsList.Add(shoutout);
+                }
+                else
+                {
+                    KerbalSNSScenario.Instance.DeleteShoutout(shoutout);
                 }
             }
 
-            foreach(KerbShoutout shoutout in shoutoutsToRemove)
-            {
-                shoutoutList.Remove(shoutout);
-                KerbalSNSScenario.Instance.DeleteShoutout(shoutout);
-            }
+            return freshShoutoutsList;
         }
 
-        private KerbShoutout createShoutout(KerbShoutout baseShoutout, String postedBy, double postedTime)
+        private KerbShoutout createShoutout(KerbShoutout baseShoutout, String postedBy)
         {
             KerbShoutout shoutout = new KerbShoutout();
 
@@ -739,8 +810,10 @@ namespace KerbalSNS
             shoutout.postedId = "TODO";
 
             shoutout.postedBy = postedBy;
-            shoutout.postedTime = postedTime;
+            shoutout.postedTime = Planetarium.GetUniversalTime();
+
             shoutout.postedShoutout = baseShoutout.shoutout;
+            // TODO add some formatting if needed
 
             return shoutout;
         }
@@ -755,6 +828,7 @@ namespace KerbalSNS
             double now = Planetarium.GetUniversalTime();
             double delta =  now - time;
 
+            // TODO test on other planets, maybe the year/day/hour/minute might be different
             int years = (((int)delta) / KSPUtil.dateTimeFormatter.Year) + 1;
 
             int remainder = ((int)delta) % KSPUtil.dateTimeFormatter.Year;
