@@ -372,13 +372,19 @@ namespace KerbalSNS
                 TextAnchor.MiddleLeft,
                 new DialogGUIBase[] {
                     new DialogGUIImage(
-                        new Vector2(36, 36),
+                        new Vector2(58, 36),
                         new Vector2(0, 0),
                         Color.white,
-                        GameDatabase.Instance.GetTexture("KerbalSNS/ksp", false)
+                        GameDatabase.Instance.GetTexture(HighLogic.CurrentGame.flagURL, false)
                     ),
-                    new DialogGUILabel("KSC", true, true),
-                    new DialogGUIFlexibleSpace(),
+                    new DialogGUIHorizontalLayout(
+                        TextAnchor.MiddleCenter,
+                        new DialogGUIBase[] {
+                            new DialogGUIFlexibleSpace(),
+                            new DialogGUILabel("<size=28>Kerbal Space Center</size>", true, true),
+                            new DialogGUIFlexibleSpace(),
+                        }
+                    )
                 }
             );
             scrollElementsList.Add(header);
@@ -432,6 +438,7 @@ namespace KerbalSNS
                                 true)
                         }
                     ));
+                    // TODO maybe add some pictures?
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
 						TextAnchor.MiddleCenter,
 						new DialogGUIBase[] {
@@ -479,7 +486,7 @@ namespace KerbalSNS
                         Color.white,
                         GameDatabase.Instance.GetTexture("KerbalSNS/shouts", false)
                     ),
-                    new DialogGUILabel("Home", true, true),
+                    new DialogGUILabel("<size=24>Kerbshouts!</size>", true, true),
                     new DialogGUIFlexibleSpace()
                 }
             );
@@ -504,6 +511,69 @@ namespace KerbalSNS
             shoutoutList = updateShoutoutsIfNeeded(shoutoutList);
             shoutoutList = shoutoutList.OrderByDescending(s => s.postedTime).ToList();
 
+            scrollElementsList.Add(new DialogGUIHorizontalLayout(
+                TextAnchor.MiddleCenter,
+                new DialogGUIBase[] {
+                        new DialogGUILabel(
+                            "--------------------------------------------------------------------------------",
+                            320,
+                            25)
+                }
+            ));
+
+            String enteredShoutout = "";
+            scrollElementsList.Add(new DialogGUIHorizontalLayout(
+                TextAnchor.MiddleCenter,
+                new DialogGUIBase[] {
+                        // this is supposed to be a profile image
+                        new DialogGUIVerticalLayout(
+                            10,
+                            25,
+                            4,
+                            new RectOffset(2, 2, 4, 4),
+                            TextAnchor.UpperCenter,
+                            new DialogGUIBase[] {
+                                new DialogGUIImage(
+                                    new Vector2(20, 20),
+                                    new Vector2(0, 0),
+                                    Color.white,
+                                    GameDatabase.Instance.GetTexture(
+                                        "KerbalSNS/kerbal1",
+                                        false)
+                                )
+                            }
+                        ),
+                        new DialogGUITextInput(
+                            enteredShoutout,
+                            "<color=#8B907D>What are you thinking?</color>",
+                            false,
+                            200,
+                            delegate (String s) {
+                                enteredShoutout = s;
+                                // TODO block key press
+                                return s;
+                            }
+                        ),
+                        new DialogGUIButton(
+                            "Shout!",
+                            delegate {
+                                KerbShoutout baseShoutout = new KerbShoutout();
+
+                                baseShoutout.name = "TODO";
+                                baseShoutout.repLevel = KerbShoutout.RepLevel.Any;
+                                baseShoutout.poster = KerbShoutout.ShoutoutPoster.KSCEmployee;
+                                baseShoutout.type = KerbShoutout.ShoutoutType.Random;
+                                baseShoutout.shoutout = enteredShoutout;
+
+                                KerbShoutout shoutout = createShoutout(baseShoutout, randomKerbalName() + " @KSC");
+                                KerbalSNSScenario.Instance.RegisterShoutout(shoutout);
+
+                                spawnBrowserDialog(BrowserType.Shoutouts);
+                            },
+                            true
+                        ),
+                }
+            ));
             foreach (KerbShoutout shoutout in shoutoutList)
 			{
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
@@ -515,7 +585,7 @@ namespace KerbalSNS
                             25)
                     }
                 ));
-                
+
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
 					TextAnchor.MiddleCenter,
 					new DialogGUIBase[] {
@@ -547,7 +617,6 @@ namespace KerbalSNS
                             new DialogGUIBase[] {
                                 new DialogGUILabel(
                                     shoutout.postedBy
-                                    + " @" + makeLikeUsername(shoutout.postedBy)
                                     + " " + getRelativeTime(shoutout.postedTime),
                                     true,
                                     true),
@@ -783,15 +852,18 @@ namespace KerbalSNS
                     // TODO fetch shoutouts based on current reputation, and get random from there
                     KerbShoutout baseShoutout = baseShoutoutList[mizer.Next(baseShoutoutList.Count)];
 
-                    String postedBy = randomKerbalName();
+                    String postedBy = null;
                     if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.Any 
-                        || baseShoutout.poster == KerbShoutout.ShoutoutPoster.Citizen)
+                        || baseShoutout.poster == KerbShoutout.ShoutoutPoster.Citizen
+                        || baseShoutout.poster == KerbShoutout.ShoutoutPoster.Unknown)
                     {
                         postedBy = randomKerbalName(); // TODO add checking to see if not currently in roster
+                        postedBy = postedBy + " @" + makeLikeUsername(postedBy);
                     }
                     if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.VesselCrew)
                     {
                         postedBy = randomKerbalName(); // TODO get from vesel crews
+                        // TODO add permanent username
                     }
                     if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.KSCEmployee)
                     {
@@ -849,12 +921,15 @@ namespace KerbalSNS
 
             shoutout.postedId = "TODO";
 
-            shoutout.postedBy = postedBy;
+            shoutout.postedBy = 
+                Regex.Replace(postedBy, "@([\\w]+)", "<color=#CBF856><u>@$1</u></color>", RegexOptions.IgnoreCase);
             shoutout.postedTime = Planetarium.GetUniversalTime();
 
             shoutout.postedShoutout = 
                 Regex.Replace(baseShoutout.shoutout, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
-            
+            shoutout.postedShoutout =
+                Regex.Replace(shoutout.postedShoutout, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
+
             // TODO add some formatting if needed
 
             return shoutout;
