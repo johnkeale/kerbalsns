@@ -1,2 +1,2 @@
 # kerbalsns
-Kerbal Stories And Shoutouts
+Kerbal Stories And Shouts

@@ -23,7 +23,7 @@ namespace KerbalSNS
 
         private double lastStoryPostedTime = 0; // TODO rename
         private List<KerbStory> baseStoryList;
-        private List<KerbShoutout> baseShoutoutList;
+        private List<KerbShout> baseShoutList;
         #endregion
 
         #region inherited methods
@@ -56,7 +56,7 @@ namespace KerbalSNS
             this.lastStoryPostedTime = Planetarium.GetUniversalTime();
 
             baseStoryList = new List<KerbStory>();
-            baseShoutoutList = new List<KerbShoutout>();
+            baseShoutList = new List<KerbShout>();
 
             ConfigNode rootStoryNode = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/KerbalSNS/baseStoriesList.cfg");
             ConfigNode storyListNode = rootStoryNode.GetNode("KERBSTORIES");
@@ -69,15 +69,15 @@ namespace KerbalSNS
                 baseStoryList.Add(story);
             }
 
-            ConfigNode rootShoutoutNode = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/KerbalSNS/baseShoutoutsList.cfg");
-            ConfigNode shoutoutListNode = rootShoutoutNode.GetNode("KERBSHOUTOUTS");
+            ConfigNode rootShoutNode = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/KerbalSNS/baseShoutsList.cfg");
+            ConfigNode shoutListNode = rootShoutNode.GetNode("KERBSHOUTS");
 
-            ConfigNode[] shoutoutArray = shoutoutListNode.GetNodes();
-            foreach (ConfigNode shoutoutNode in shoutoutArray)
+            ConfigNode[] shoutArray = shoutListNode.GetNodes();
+            foreach (ConfigNode shoutNode in shoutArray)
             {
-                KerbShoutout shoutout = new KerbShoutout();
-                shoutout.LoadFromConfigNode(shoutoutNode);
-                baseShoutoutList.Add(shoutout);
+                KerbShout shout = new KerbShout();
+                shout.LoadFromConfigNode(shoutNode);
+                baseShoutList.Add(shout);
             }
             /*
             double time = Planetarium.GetUniversalTime();
@@ -175,7 +175,7 @@ namespace KerbalSNS
             }
         }
         
-        enum BrowserType { Stories, Shoutouts };
+        enum BrowserType { Stories, Shouts };
 
         // TODO learn to use UIStyle
         private void spawnBrowserDialog(BrowserType browserType)
@@ -185,9 +185,9 @@ namespace KerbalSNS
             {
                 dialogName = "browseStoriesDialog";
             }
-            else if (browserType == BrowserType.Shoutouts)
+            else if (browserType == BrowserType.Shouts)
             {
-                dialogName = "browseShoutoutsDialog";
+                dialogName = "browseShoutsDialog";
             }
 
             this.shouldSpawnBrowserDialog = false;
@@ -207,7 +207,7 @@ namespace KerbalSNS
                         new DialogGUIButton(
                             "Kerbshouts!",
                             delegate {
-                                spawnBrowserDialog(BrowserType.Shoutouts);
+                                spawnBrowserDialog(BrowserType.Shouts);
                             },
                             true
                         ),
@@ -222,7 +222,7 @@ namespace KerbalSNS
                     }
                 ));
             }
-            else if (browserType == BrowserType.Shoutouts)
+            else if (browserType == BrowserType.Shouts)
             {
                 dialogElementsList.Add(new DialogGUIHorizontalLayout(
                     new DialogGUIBase[] {
@@ -256,7 +256,7 @@ namespace KerbalSNS
             {
                 dummyUrl = "https://www.ksc.org/stories.php";
             }
-            else if (browserType == BrowserType.Shoutouts)
+            else if (browserType == BrowserType.Shouts)
             {
                 dummyUrl = "https://kerbshouts.com/feed";
             }
@@ -292,9 +292,9 @@ namespace KerbalSNS
             {
                 scrollElementsList = buildStoriesScrollElementsList();
             }
-            else if (browserType == BrowserType.Shoutouts)
+            else if (browserType == BrowserType.Shouts)
             {
-                scrollElementsList = buildShoutoutsScrollElementsList();
+                scrollElementsList = buildShoutsScrollElementsList();
             }
 
             float scrollElementsHeight = 0;
@@ -473,7 +473,7 @@ namespace KerbalSNS
             return scrollElementsList;
         }
 
-        private List<DialogGUIHorizontalLayout> buildShoutoutsScrollElementsList()
+        private List<DialogGUIHorizontalLayout> buildShoutsScrollElementsList()
         {
             List<DialogGUIHorizontalLayout> scrollElementsList = new List<DialogGUIHorizontalLayout>();
 
@@ -507,9 +507,9 @@ namespace KerbalSNS
             );
             scrollElementsList.Add(navBar);
 
-            List<KerbShoutout> shoutoutList = KerbalSNSScenario.Instance.GetShoutoutList; // TODO fix bad name
-            shoutoutList = updateShoutoutsIfNeeded(shoutoutList);
-            shoutoutList = shoutoutList.OrderByDescending(s => s.postedTime).ToList();
+            List<KerbShout> shoutList = KerbalSNSScenario.Instance.GetShoutList; // TODO fix bad name
+            shoutList = updateShoutsIfNeeded(shoutList);
+            shoutList = shoutList.OrderByDescending(s => s.postedTime).ToList();
 
             scrollElementsList.Add(new DialogGUIHorizontalLayout(
                 TextAnchor.MiddleCenter,
@@ -521,7 +521,7 @@ namespace KerbalSNS
                 }
             ));
 
-            String enteredShoutout = "";
+            String enteredShout = "";
             scrollElementsList.Add(new DialogGUIHorizontalLayout(
                 TextAnchor.MiddleCenter,
                 new DialogGUIBase[] {
@@ -544,12 +544,12 @@ namespace KerbalSNS
                             }
                         ),
                         new DialogGUITextInput(
-                            enteredShoutout,
+                            enteredShout,
                             "<color=#8B907D>What are you thinking?</color>",
                             false,
                             200,
                             delegate (String s) {
-                                enteredShoutout = s;
+                                enteredShout = s;
                                 // TODO block key press
                                 return s;
                             }
@@ -557,24 +557,24 @@ namespace KerbalSNS
                         new DialogGUIButton(
                             "Shout!",
                             delegate {
-                                KerbShoutout baseShoutout = new KerbShoutout();
+                                KerbShout baseShout = new KerbShout();
 
-                                baseShoutout.name = "TODO";
-                                baseShoutout.repLevel = KerbShoutout.RepLevel.Any;
-                                baseShoutout.poster = KerbShoutout.ShoutoutPoster.KSCEmployee;
-                                baseShoutout.type = KerbShoutout.ShoutoutType.Random;
-                                baseShoutout.shoutout = enteredShoutout;
+                                baseShout.name = "TODO";
+                                baseShout.repLevel = KerbShout.RepLevel.Any;
+                                baseShout.poster = KerbShout.ShoutPoster.KSCEmployee;
+                                baseShout.type = KerbShout.ShoutType.Random;
+                                baseShout.shout = enteredShout;
 
-                                KerbShoutout shoutout = createShoutout(baseShoutout, randomKerbalName() + " @KSC");
-                                KerbalSNSScenario.Instance.RegisterShoutout(shoutout);
+                                KerbShout shout = createShout(baseShout, randomKerbalName() + " @KSC");
+                                KerbalSNSScenario.Instance.RegisterShout(shout);
 
-                                spawnBrowserDialog(BrowserType.Shoutouts);
+                                spawnBrowserDialog(BrowserType.Shouts);
                             },
                             true
                         ),
                 }
             ));
-            foreach (KerbShoutout shoutout in shoutoutList)
+            foreach (KerbShout shout in shoutList)
 			{
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
                     TextAnchor.MiddleCenter,
@@ -616,11 +616,11 @@ namespace KerbalSNS
                             TextAnchor.MiddleCenter,
                             new DialogGUIBase[] {
                                 new DialogGUILabel(
-                                    shoutout.postedBy
-                                    + " " + getRelativeTime(shoutout.postedTime),
+                                    shout.postedBy
+                                    + " " + getRelativeTime(shout.postedTime),
                                     true,
                                     true),
-                                new DialogGUILabel(shoutout.postedShoutout, true, true)
+                                new DialogGUILabel(shout.postedShout, true, true)
                             }
                         )
                     }
@@ -702,7 +702,7 @@ namespace KerbalSNS
         {
             this.shouldSpawnBrowserDialog = false;
             PopupDialog.DismissPopup("browseStoriesDialog");
-            PopupDialog.DismissPopup("browseShoutoutsDialog");
+            PopupDialog.DismissPopup("browseShoutsDialog");
         }
 
         private void createLauncher()
@@ -839,100 +839,100 @@ namespace KerbalSNS
             return story;
         }
         
-        private List<KerbShoutout> updateShoutoutsIfNeeded(List<KerbShoutout> shoutoutList)
+        private List<KerbShout> updateShoutsIfNeeded(List<KerbShout> shoutList)
         {
             double now = Planetarium.GetUniversalTime();
-            List<KerbShoutout> updatedShoutoutList = 
-                purgeOldShoutouts(shoutoutList, now, KSPUtil.dateTimeFormatter.Hour);
+            List<KerbShout> updatedShoutList = 
+                purgeOldShouts(shoutList, now, KSPUtil.dateTimeFormatter.Hour);
 
-            if (updatedShoutoutList.Count == 0 || updatedShoutoutList.Count < KerbalSNSSettings.MaxNumOfShoutouts)
+            if (updatedShoutList.Count == 0 || updatedShoutList.Count < KerbalSNSSettings.MaxNumOfShouts)
             {
-                for (int i = updatedShoutoutList.Count; i < KerbalSNSSettings.MaxNumOfShoutouts; i++)
+                for (int i = updatedShoutList.Count; i < KerbalSNSSettings.MaxNumOfShouts; i++)
                 {
-                    // TODO fetch shoutouts based on current reputation, and get random from there
-                    KerbShoutout baseShoutout = baseShoutoutList[mizer.Next(baseShoutoutList.Count)];
+                    // TODO fetch shouts based on current reputation, and get random from there
+                    KerbShout baseShout = baseShoutList[mizer.Next(baseShoutList.Count)];
 
                     String postedBy = null;
-                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.Any 
-                        || baseShoutout.poster == KerbShoutout.ShoutoutPoster.Citizen
-                        || baseShoutout.poster == KerbShoutout.ShoutoutPoster.Unknown)
+                    if (baseShout.poster == KerbShout.ShoutPoster.Any 
+                        || baseShout.poster == KerbShout.ShoutPoster.Citizen
+                        || baseShout.poster == KerbShout.ShoutPoster.Unknown)
                     {
                         postedBy = randomKerbalName(); // TODO add checking to see if not currently in roster
                         postedBy = postedBy + " @" + makeLikeUsername(postedBy);
                     }
-                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.VesselCrew)
+                    if (baseShout.poster == KerbShout.ShoutPoster.VesselCrew)
                     {
                         postedBy = randomKerbalName(); // TODO get from vesel crews
                         // TODO add permanent username
                     }
-                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.KSCEmployee)
+                    if (baseShout.poster == KerbShout.ShoutPoster.KSCEmployee)
                     {
                         postedBy = "KSC";
                     }
-                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.KSC)
+                    if (baseShout.poster == KerbShout.ShoutPoster.KSC)
                     {
                         postedBy = "KSC";
                     }
-                    if (baseShoutout.poster == KerbShoutout.ShoutoutPoster.Specific)
+                    if (baseShout.poster == KerbShout.ShoutPoster.Specific)
                     {
-                        postedBy = baseShoutout.specificPoster;
+                        postedBy = baseShout.specificPoster;
                     }
 
-                    KerbShoutout shoutout = createShoutout(baseShoutout, postedBy); // TODO check if existing as an applicant or crew
-                    shoutout.postedTime = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
+                    KerbShout shout = createShout(baseShout, postedBy); // TODO check if existing as an applicant or crew
+                    shout.postedTime = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
 
-                    updatedShoutoutList.Add(shoutout);
-                    KerbalSNSScenario.Instance.RegisterShoutout(shoutout);
+                    updatedShoutList.Add(shout);
+                    KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
             }
 
-            return updatedShoutoutList;
+            return updatedShoutList;
         }
 
-        private List<KerbShoutout> purgeOldShoutouts(List<KerbShoutout> shoutoutList, double baseTime, double deltaTime)
+        private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
         {
-            List<KerbShoutout> freshShoutoutsList = new List<KerbShoutout>();
+            List<KerbShout> freshShoutsList = new List<KerbShout>();
 
-            foreach (KerbShoutout shoutout in shoutoutList)
+            foreach (KerbShout shout in shoutList)
             {
-                // shoutout still new
-                if (baseTime - shoutout.postedTime <= deltaTime)
+                // shout still new
+                if (baseTime - shout.postedTime <= deltaTime)
                 {
-                    freshShoutoutsList.Add(shoutout);
+                    freshShoutsList.Add(shout);
                 }
                 else
                 {
-                    KerbalSNSScenario.Instance.DeleteShoutout(shoutout);
+                    KerbalSNSScenario.Instance.DeleteShout(shout);
                 }
             }
 
-            return freshShoutoutsList;
+            return freshShoutsList;
         }
 
-        private KerbShoutout createShoutout(KerbShoutout baseShoutout, String postedBy)
+        private KerbShout createShout(KerbShout baseShout, String postedBy)
         {
-            KerbShoutout shoutout = new KerbShoutout();
+            KerbShout shout = new KerbShout();
 
-            shoutout.name = baseShoutout.name;
-            shoutout.repLevel = baseShoutout.repLevel;
-            shoutout.poster = baseShoutout.poster;
-            shoutout.type = baseShoutout.type;
-            shoutout.shoutout = baseShoutout.shoutout;
+            shout.name = baseShout.name;
+            shout.repLevel = baseShout.repLevel;
+            shout.poster = baseShout.poster;
+            shout.type = baseShout.type;
+            shout.shout = baseShout.shout;
 
-            shoutout.postedId = "TODO";
+            shout.postedId = "TODO";
 
-            shoutout.postedBy = 
+            shout.postedBy = 
                 Regex.Replace(postedBy, "@([\\w]+)", "<color=#CBF856><u>@$1</u></color>", RegexOptions.IgnoreCase);
-            shoutout.postedTime = Planetarium.GetUniversalTime();
+            shout.postedTime = Planetarium.GetUniversalTime();
 
-            shoutout.postedShoutout = 
-                Regex.Replace(baseShoutout.shoutout, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
-            shoutout.postedShoutout =
-                Regex.Replace(shoutout.postedShoutout, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
+            shout.postedShout = 
+                Regex.Replace(baseShout.shout, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
+            shout.postedShout =
+                Regex.Replace(shout.postedShout, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
 
             // TODO add some formatting if needed
 
-            return shoutout;
+            return shout;
         }
 
         private String makeLikeUsername(String name)

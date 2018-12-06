@@ -5,7 +5,7 @@ using System.Text;
 
 namespace KerbalSNS
 {
-    public class KerbShoutout
+    public class KerbShout
     {
         public enum RepLevel
         {
@@ -17,7 +17,7 @@ namespace KerbalSNS
             VeryHigh,
         }
 
-        public enum ShoutoutPoster
+        public enum ShoutPoster
         {
             Unknown = -1,
             Any,
@@ -28,7 +28,7 @@ namespace KerbalSNS
             Specific,
         }
 
-        public enum ShoutoutType
+        public enum ShoutType
         {
             Unknown = -1,
             RepLevel,
@@ -42,16 +42,16 @@ namespace KerbalSNS
 
         public String name { get; set; }
         public RepLevel repLevel { get; set; }
-        public ShoutoutPoster poster { get; set; }
+        public ShoutPoster poster { get; set; }
 		public String specificPoster { get; set; }
-        public ShoutoutType type { get; set; }
-        public String shoutout { get; set; }
+        public ShoutType type { get; set; }
+        public String shout { get; set; }
 		public String reqdMilestone; // TODO
 
         public String postedId { get; set; }
         public String postedBy { get; set; }
         public double postedTime { get; set; }
-        public String postedShoutout { get; set; }
+        public String postedShout { get; set; }
 
         public void LoadFromConfigNode(ConfigNode node)
         {
@@ -83,27 +83,27 @@ namespace KerbalSNS
             String poster = node.GetValue("poster");
             if ("any".Equals(poster))
             {
-                this.poster = ShoutoutPoster.Any;
+                this.poster = ShoutPoster.Any;
             }
             if ("citizen".Equals(poster))
             {
-                this.poster = ShoutoutPoster.Citizen;
+                this.poster = ShoutPoster.Citizen;
             }
             if ("vesselCrew".Equals(poster))
             {
-                this.poster = ShoutoutPoster.VesselCrew;
+                this.poster = ShoutPoster.VesselCrew;
             }
             if ("kscEmployee".Equals(poster))
             {
-                this.poster = ShoutoutPoster.KSCEmployee;
+                this.poster = ShoutPoster.KSCEmployee;
             }
             if ("ksc".Equals(poster))
             {
-                this.poster = ShoutoutPoster.KSC;
+                this.poster = ShoutPoster.KSC;
             }
             if ("specific".Equals(poster))
             {
-                this.poster = ShoutoutPoster.Specific;
+                this.poster = ShoutPoster.Specific;
             }
 
             if (node.HasValue("specificPoster"))
@@ -111,38 +111,38 @@ namespace KerbalSNS
                 this.specificPoster = node.GetValue("specificPoster");
             }
 
-            this.type = ShoutoutType.Unknown;
+            this.type = ShoutType.Unknown;
             String type = node.GetValue("type");
             if ("repLevel".Equals(type))
             {
-                this.type = ShoutoutType.RepLevel;
+                this.type = ShoutType.RepLevel;
             }
             if ("lameJoke".Equals(type))
             {
-                this.type = ShoutoutType.LameJoke;
+                this.type = ShoutType.LameJoke;
             }
             if ("crew".Equals(type))
             {
-                this.type = ShoutoutType.Crew;
+                this.type = ShoutType.Crew;
             }
             if ("kscNews".Equals(type))
             {
-                this.type = ShoutoutType.KSCNews;
+                this.type = ShoutType.KSCNews;
             }
             if ("newsReponse".Equals(type))
             {
-                this.type = ShoutoutType.NewsReponse;
+                this.type = ShoutType.NewsReponse;
             }
             if ("random".Equals(type))
             {
-                this.type = ShoutoutType.Random;
+                this.type = ShoutType.Random;
             }
             if ("nonsense".Equals(type))
             {
-                this.type = ShoutoutType.Nonsense;
+                this.type = ShoutType.Nonsense;
             }
             
-            this.shoutout = node.GetValue("shoutout");
+            this.shout = node.GetValue("shout");
 
             this.postedId = node.GetValue("postedId");
             this.postedBy = node.GetValue("postedBy");
@@ -150,7 +150,7 @@ namespace KerbalSNS
             {
                 this.postedTime = Double.Parse(node.GetValue("postedTime"));
             }
-            this.postedShoutout = node.GetValue("postedShoutout");
+            this.postedShout = node.GetValue("postedShout");
         }
 
         public ConfigNode SaveToConfigNode()
@@ -184,77 +184,77 @@ namespace KerbalSNS
                 node.SetValue("repLevel", "veryHigh", true);
             }
 
-            if (this.poster == ShoutoutPoster.Unknown)
+            if (this.poster == ShoutPoster.Unknown)
             {
                 node.SetValue("poster", "unknown", true);
             }
-            if (this.poster == ShoutoutPoster.Any)
+            if (this.poster == ShoutPoster.Any)
             {
                 node.SetValue("poster", "any", true);
             }
-            if (this.poster == ShoutoutPoster.Citizen)
+            if (this.poster == ShoutPoster.Citizen)
             {
                 node.SetValue("poster", "citizen", true);
             }
-            if (this.poster == ShoutoutPoster.VesselCrew)
+            if (this.poster == ShoutPoster.VesselCrew)
             {
                 node.SetValue("poster", "vesselCrew", true);
             }
-            if (this.poster == ShoutoutPoster.KSCEmployee)
+            if (this.poster == ShoutPoster.KSCEmployee)
             {
                 node.SetValue("poster", "kscEmployee", true);
             }
-            if (this.poster == ShoutoutPoster.KSC)
+            if (this.poster == ShoutPoster.KSC)
             {
                 node.SetValue("poster", "ksc", true);
             }
-            if (this.poster == ShoutoutPoster.Specific)
+            if (this.poster == ShoutPoster.Specific)
             {
                 node.SetValue("poster", "specific", true);
             }
 
             node.SetValue("specificPoster", this.specificPoster, true);
 
-            if (this.type == ShoutoutType.Unknown)
+            if (this.type == ShoutType.Unknown)
             {
                 node.SetValue("type", "unknown", true);
             }
-            if (this.type == ShoutoutType.RepLevel)
+            if (this.type == ShoutType.RepLevel)
             {
                 node.SetValue("type", "repLevel", true);
             }
-            if (this.type == ShoutoutType.LameJoke)
+            if (this.type == ShoutType.LameJoke)
             {
                 node.SetValue("type", "lameJoke", true);
             }
-            if (this.type == ShoutoutType.Crew)
+            if (this.type == ShoutType.Crew)
             {
                 node.SetValue("type", "crew", true);
             }
-            if (this.type == ShoutoutType.KSCNews)
+            if (this.type == ShoutType.KSCNews)
             {
                 node.SetValue("type", "kscNews", true);
             }
-            if (this.type == ShoutoutType.NewsReponse)
+            if (this.type == ShoutType.NewsReponse)
             {
                 node.SetValue("type", "newsReponse", true);
             }
-            if (this.type == ShoutoutType.Random)
+            if (this.type == ShoutType.Random)
             {
                 node.SetValue("type", "random", true);
             }
-            if (this.type == ShoutoutType.Nonsense)
+            if (this.type == ShoutType.Nonsense)
             {
                 node.SetValue("type", "nonsense", true);
                 ;
             }
 
-            node.SetValue("shoutout", this.shoutout, true);
+            node.SetValue("shout", this.shout, true);
             
             node.SetValue("postedId", this.postedId, true);
             node.SetValue("postedBy", this.postedBy, true);
             node.SetValue("postedTime", this.postedTime, true);
-            node.SetValue("postedShoutout", this.postedShoutout, true);
+            node.SetValue("postedShout", this.postedShout, true);
 
             return node;
         }

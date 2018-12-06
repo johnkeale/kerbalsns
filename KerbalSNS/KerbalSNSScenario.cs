@@ -13,7 +13,7 @@ namespace KerbalSNS
 
         #region properties
         protected List<KerbStory> storyList = new List<KerbStory>();
-        protected List<KerbShoutout> shoutoutList = new List<KerbShoutout>();
+        protected List<KerbShout> shoutList = new List<KerbShout>();
         #endregion
 
         #region inherited methods
@@ -35,12 +35,12 @@ namespace KerbalSNS
                 storyList.Add(story);
             }
 
-            ConfigNode[] shoutoutArray = node.GetNodes("KERBSHOUTOUT");
-            foreach (ConfigNode shoutoutNode in shoutoutArray)
+            ConfigNode[] shoutArray = node.GetNodes("KERBSHOUT");
+            foreach (ConfigNode shoutNode in shoutArray)
             {
-                KerbShoutout shoutout = new KerbShoutout();
-                shoutout.LoadFromConfigNode(shoutoutNode);
-                shoutoutList.Add(shoutout);
+                KerbShout shout = new KerbShout();
+                shout.LoadFromConfigNode(shoutNode);
+                shoutList.Add(shout);
             }
         }
 
@@ -53,9 +53,9 @@ namespace KerbalSNS
                 node.AddNode("KERBSTORY", story.SaveToConfigNode());
             }
 
-            foreach (KerbShoutout shoutout in this.shoutoutList)
+            foreach (KerbShout shout in this.shoutList)
             {
-                node.AddNode("KERBSHOUTOUT", shoutout.SaveToConfigNode());
+                node.AddNode("KERBSHOUT", shout.SaveToConfigNode());
             }
             
         }
@@ -70,11 +70,11 @@ namespace KerbalSNS
             }
         }
 
-        public List<KerbShoutout> GetShoutoutList
+        public List<KerbShout> GetShoutList
         {
             get
             {
-                return this.shoutoutList.ToList();
+                return this.shoutList.ToList();
             }
         }
 
@@ -88,14 +88,14 @@ namespace KerbalSNS
             this.storyList.Remove(story);
         }
 
-        public void RegisterShoutout(KerbShoutout shoutout)
+        public void RegisterShout(KerbShout shout)
         {
-            this.shoutoutList.Add(shoutout);
+            this.shoutList.Add(shout);
         }
 
-        public void DeleteShoutout(KerbShoutout shoutout)
+        public void DeleteShout(KerbShout shout)
         {
-            this.shoutoutList.Remove(shoutout);
+            this.shoutList.Remove(shout);
         }
         #endregion
 
