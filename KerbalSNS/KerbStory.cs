@@ -5,38 +5,26 @@ using System.Text;
 
 namespace KerbalSNS
 {
-    public class KerbStory
+    public class KerbStory : KerbBaseStory
     {
-        public enum StoryType
-        {
-            Unknown,
-        }
-
-        public String name { get; set; }
-        public int kerbalCount { get; set; }
-        public StoryType type { get; set; }
-        public String storyText { get; set; }
-        public bool isRepeatable { get; set; }
-
         public String postedId { get; set; }
         public String postedOnVessel { get; set; }
         public double postedTime { get; set; }
         public String postedStoryText { get; set; }
 
-        public void LoadFromConfigNode(ConfigNode node)
+        public KerbStory() { }
+
+        public KerbStory(KerbBaseStory baseStory)
         {
-            this.name = node.GetValue("name");
+            this.name = baseStory.name;
+            this.kerbalCount = baseStory.kerbalCount;
+            this.type = baseStory.type;
+            this.text = baseStory.text;
+        }
 
-            this.kerbalCount = int.Parse(node.GetValue("kerbalCount"));
-
-            this.type = StoryType.Unknown;
-            String type = node.GetValue("type");
-            if ("type".Equals(type))
-            {
-                this.type = StoryType.Unknown;
-            }
-
-            this.storyText = node.GetValue("storyText");
+        public override void LoadFromConfigNode(ConfigNode node)
+        {
+            base.LoadFromConfigNode(node);
 
             this.postedId = node.GetValue("postedId");
             this.postedOnVessel = node.GetValue("postedOnVessel");
@@ -47,16 +35,9 @@ namespace KerbalSNS
             this.postedStoryText = node.GetValue("postedStoryText");
         }
 
-        public ConfigNode SaveToConfigNode()
+        public override ConfigNode SaveToConfigNode()
         {
-            ConfigNode node = new ConfigNode("KERBSTORY");
-
-            node.SetValue("name", this.name, true);
-            node.SetValue("kerbalCount", this.kerbalCount, true);
-
-            // TODO type
-
-            node.SetValue("storyText", this.storyText, true);
+            ConfigNode node = base.SaveToConfigNode();
 
             node.SetValue("postedId", this.postedId, true);
             node.SetValue("postedOnVessel", this.postedOnVessel, true);

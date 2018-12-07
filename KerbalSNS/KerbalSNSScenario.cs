@@ -27,7 +27,7 @@ namespace KerbalSNS
         {
             base.OnLoad(node);
 
-            ConfigNode[] storyArray = node.GetNodes("KERBSTORY");
+            ConfigNode[] storyArray = node.GetNodes(KerbStory.NODE_NAME);
             foreach (ConfigNode storyNode in storyArray)
             {
                 KerbStory story = new KerbStory();
@@ -35,7 +35,7 @@ namespace KerbalSNS
                 storyList.Add(story);
             }
 
-            ConfigNode[] shoutArray = node.GetNodes("KERBSHOUT");
+            ConfigNode[] shoutArray = node.GetNodes(KerbShout.NODE_NAME);
             foreach (ConfigNode shoutNode in shoutArray)
             {
                 KerbShout shout = new KerbShout();
@@ -50,12 +50,12 @@ namespace KerbalSNS
             
             foreach(KerbStory story in this.storyList)
             {
-                node.AddNode("KERBSTORY", story.SaveToConfigNode());
+                node.AddNode(KerbStory.NODE_NAME, story.SaveToConfigNode());
             }
 
             foreach (KerbShout shout in this.shoutList)
             {
-                node.AddNode("KERBSHOUT", shout.SaveToConfigNode());
+                node.AddNode(KerbShout.NODE_NAME, shout.SaveToConfigNode());
             }
             
         }

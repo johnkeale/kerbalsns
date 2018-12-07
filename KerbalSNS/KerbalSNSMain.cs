@@ -22,8 +22,8 @@ namespace KerbalSNS
         private System.Random mizer;
 
         private double lastStoryPostedTime = 0; // TODO rename
-        private List<KerbStory> baseStoryList;
-        private List<KerbShout> baseShoutList;
+        private List<KerbBaseStory> baseStoryList;
+        private List<KerbBaseShout> baseShoutList;
         #endregion
 
         #region inherited methods
@@ -55,27 +55,27 @@ namespace KerbalSNS
             mizer = new System.Random();
             this.lastStoryPostedTime = Planetarium.GetUniversalTime();
 
-            baseStoryList = new List<KerbStory>();
-            baseShoutList = new List<KerbShout>();
+            baseStoryList = new List<KerbBaseStory>();
+            baseShoutList = new List<KerbBaseShout>();
 
             ConfigNode rootStoryNode = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/KerbalSNS/baseStoriesList.cfg");
-            ConfigNode storyListNode = rootStoryNode.GetNode("KERBSTORIES");
+            ConfigNode storyListNode = rootStoryNode.GetNode(KerbBaseStory.NODE_NAME_PLURAL);
 
             ConfigNode[] storyArray = storyListNode.GetNodes();
             foreach (ConfigNode storyNode in storyArray)
             {
-                KerbStory story = new KerbStory();
+                KerbBaseStory story = new KerbBaseStory();
                 story.LoadFromConfigNode(storyNode);
                 baseStoryList.Add(story);
             }
 
             ConfigNode rootShoutNode = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/KerbalSNS/baseShoutsList.cfg");
-            ConfigNode shoutListNode = rootShoutNode.GetNode("KERBSHOUTS");
+            ConfigNode shoutListNode = rootShoutNode.GetNode(KerbBaseShout.NODE_NAME_PLURAL);
 
             ConfigNode[] shoutArray = shoutListNode.GetNodes();
             foreach (ConfigNode shoutNode in shoutArray)
             {
-                KerbShout shout = new KerbShout();
+                KerbBaseShout shout = new KerbBaseShout();
                 shout.LoadFromConfigNode(shoutNode);
                 baseShoutList.Add(shout);
             }
@@ -194,62 +194,39 @@ namespace KerbalSNS
 
             List<DialogGUIBase> dialogElementsList = new List<DialogGUIBase>();
 
-            if (browserType == BrowserType.Stories)
-            {
-                dialogElementsList.Add(new DialogGUIHorizontalLayout(
-                    new DialogGUIBase[] {
-                        new DialogGUIButton(
-                            "KSC's Random Stories",
-                            delegate { },
-                            () => false,
-                            true
-                        ),
-                        new DialogGUIButton(
-                            "Kerbshouts!",
-                            delegate {
-                                spawnBrowserDialog(BrowserType.Shouts);
-                            },
-                            true
-                        ),
-                        new DialogGUIFlexibleSpace(),
-                        new DialogGUIButton(
-                            "Close",
-                            delegate {
-                                this.appLauncherButton.SetFalse();
-                            },
-                            true
-                        )
-                    }
-                ));
-            }
-            else if (browserType == BrowserType.Shouts)
-            {
-                dialogElementsList.Add(new DialogGUIHorizontalLayout(
-                    new DialogGUIBase[] {
-                        new DialogGUIButton(
-                            "KSC's Random Stories",
-                            delegate {
-                                spawnBrowserDialog(BrowserType.Stories);
-                            },
-                            true
-                        ),
-                        new DialogGUIButton(
-                            "Kerbshouts!",
-                            delegate { },
-                            () => false,
-                            true
-                        ),
-                        new DialogGUIFlexibleSpace(),
-                        new DialogGUIButton(
-                            "Close",
-                            delegate {
-                                this.appLauncherButton.SetFalse();
-                            },
-                            true
-                        )
-                    }
-                ));
-            }
+            dialogElementsList.Add(new DialogGUIHorizontalLayout(
+                new DialogGUIBase[] {
+                    new DialogGUIButton(
+                        "KSC's Random Stories",
+                        delegate {
+                            spawnBrowserDialog(BrowserType.Stories);
+                        },
+                        () => (browserType == BrowserType.Shouts),
+                        true
+                    ),
+                    new DialogGUIButton(
+                        "Kerbshouts!",
+                        delegate {
+                            spawnBrowserDialog(BrowserType.Shouts);
+                        },
+                        () => (browserType == BrowserType.Stories),
+                        true
+                    ),
+                    new DialogGUIButton(
+                        "+",
+                        delegate { },
+                        false
+                    ),
+                    new DialogGUIFlexibleSpace(),
+                    new DialogGUIButton(
+                        "Close",
+                        delegate {
+                            this.appLauncherButton.SetFalse();
+                        },
+                        true
+                    )
+                }
+            ));
 
             String dummyUrl = null;
             if (browserType == BrowserType.Stories)
@@ -267,13 +244,11 @@ namespace KerbalSNS
                     new DialogGUIButton(
                         "<-",
                         delegate { },
-                        () => false,
                         false
                     ),
                     new DialogGUIButton(
                         "->",
                         delegate { },
-                        () => false,
                         false
                     ),
                     new DialogGUIButton(
@@ -284,6 +259,24 @@ namespace KerbalSNS
                         true
                     ),
                     new DialogGUILabel("  " + dummyUrl, true, false),
+                    /*new DialogGUITextInput(
+                        dummyUrl,
+                        "",
+                        false,
+                        50,
+                        delegate (String s) {
+							s = dummyUrl;
+                            return dummyUrl;
+                        },
+                        25
+                    ),*/
+                    new DialogGUIButton(
+                        "Go",
+                        delegate {
+
+                        },
+                        false
+                    ),
                 }
             ));
 
@@ -302,31 +295,24 @@ namespace KerbalSNS
             {
                 scrollElementsHeight += scrollElementsList[i].height;
             }
-
-            if (scrollElementsHeight < 450)
+            while (scrollElementsHeight < 450)
             {
-                float neededHeight = 450 - scrollElementsHeight;
                 DialogGUIHorizontalLayout spacer = new DialogGUIHorizontalLayout(
-                    true,
-                    false,
-                    4,
-                    new RectOffset(),
                     TextAnchor.MiddleCenter,
                     new DialogGUIBase[] {
-                        new DialogGUILabel("", 320, neededHeight)
+                        new DialogGUILabel("", 320, 25)
                     }
                 );
                 scrollElementsList.Add(spacer);
+                scrollElementsHeight += 25;
             }
 
             DialogGUIBase[] scrollArray = new DialogGUIBase[scrollElementsList.Count + 1];
-
             scrollArray[0] = new DialogGUIContentSizer(
                 ContentSizeFitter.FitMode.Unconstrained,
                 ContentSizeFitter.FitMode.PreferredSize,
                 true
             );
-
             for (int i = 0; i < scrollElementsList.Count; i++)
             {
                 scrollArray[i + 1] = scrollElementsList[i];
@@ -354,7 +340,7 @@ namespace KerbalSNS
                 new MultiOptionDialog(
                     dialogName,
                     "",
-                    "Kerbal SNS",
+                    "",
                     UISkinManager.defaultSkin,
                     new Rect(0.5f, 0.5f, 340, 640),
                     dialogElementsList.ToArray()
@@ -514,10 +500,10 @@ namespace KerbalSNS
             scrollElementsList.Add(new DialogGUIHorizontalLayout(
                 TextAnchor.MiddleCenter,
                 new DialogGUIBase[] {
-                        new DialogGUILabel(
-                            "--------------------------------------------------------------------------------",
-                            320,
-                            25)
+                    new DialogGUILabel(
+                        "--------------------------------------------------------------------------------",
+                        320,
+                        25)
                 }
             ));
 
@@ -525,53 +511,54 @@ namespace KerbalSNS
             scrollElementsList.Add(new DialogGUIHorizontalLayout(
                 TextAnchor.MiddleCenter,
                 new DialogGUIBase[] {
-                        // this is supposed to be a profile image
-                        new DialogGUIVerticalLayout(
-                            10,
-                            25,
-                            4,
-                            new RectOffset(2, 2, 4, 4),
-                            TextAnchor.UpperCenter,
-                            new DialogGUIBase[] {
-                                new DialogGUIImage(
-                                    new Vector2(20, 20),
-                                    new Vector2(0, 0),
-                                    Color.white,
-                                    GameDatabase.Instance.GetTexture(
-                                        "KerbalSNS/kerbal1",
-                                        false)
-                                )
-                            }
-                        ),
-                        new DialogGUITextInput(
-                            enteredShout,
-                            "<color=#8B907D>What are you thinking?</color>",
-                            false,
-                            200,
-                            delegate (String s) {
-                                enteredShout = s;
-                                // TODO block key press
-                                return s;
-                            }
-                        ),
-                        new DialogGUIButton(
-                            "Shout!",
-                            delegate {
-                                KerbShout baseShout = new KerbShout();
+                    // this is supposed to be a profile image
+                    new DialogGUIVerticalLayout(
+                        10,
+                        25,
+                        4,
+                        new RectOffset(2, 2, 4, 4),
+                        TextAnchor.UpperCenter,
+                        new DialogGUIBase[] {
+                            new DialogGUIImage(
+                                new Vector2(20, 20),
+                                new Vector2(0, 0),
+                                Color.white,
+                                GameDatabase.Instance.GetTexture(
+                                    "KerbalSNS/kerbal1",
+                                    false)
+                            )
+                        }
+                    ),
+                    new DialogGUITextInput(
+                        enteredShout,
+                        "<color=#8B907D>What are you thinking?</color>",
+                        false,
+                        200,
+                        delegate (String s) {
+                            enteredShout = s;
+                            // TODO block key press
+                            return s;
+                        },
+                        25
+                    ),
+                    new DialogGUIButton(
+                        "Shout!",
+                        delegate {
+                            KerbBaseShout baseShout = new KerbBaseShout();
 
-                                baseShout.name = "TODO";
-                                baseShout.repLevel = KerbShout.RepLevel.Any;
-                                baseShout.poster = KerbShout.ShoutPoster.KSCEmployee;
-                                baseShout.type = KerbShout.ShoutType.Random;
-                                baseShout.shout = enteredShout;
+                            baseShout.name = "TODO";
+                            baseShout.repLevel = KerbBaseShout.RepLevel.Any;
+                            baseShout.poster = KerbBaseShout.ShoutPoster.KSCEmployee;
+                            baseShout.type = KerbBaseShout.ShoutType.Random;
+                            baseShout.text = enteredShout;
 
-                                KerbShout shout = createShout(baseShout, randomKerbalName() + " @KSC");
-                                KerbalSNSScenario.Instance.RegisterShout(shout);
+                            KerbShout shout = createShout(baseShout, randomKerbalName() + " @KSC");
+                            KerbalSNSScenario.Instance.RegisterShout(shout);
 
-                                spawnBrowserDialog(BrowserType.Shouts);
-                            },
-                            true
-                        ),
+                            spawnBrowserDialog(BrowserType.Shouts);
+                        },
+                        true
+                    ),
                 }
             ));
             foreach (KerbShout shout in shoutList)
@@ -740,18 +727,18 @@ namespace KerbalSNS
         
         private void postStory()
         {
-            KerbStory story = baseStoryList[mizer.Next(baseStoryList.Count)];
+            KerbBaseStory baseStory = baseStoryList[mizer.Next(baseStoryList.Count)];
 
-            Vessel vessel = getViableVessel(story);
+            Vessel vessel = getViableVessel(baseStory);
             if (vessel == null)
             {
                 Debug.Log("No kerbals viable for this story");
                 return;
             }
 
-            List<ProtoCrewMember> kerbalList = getViableKerbals(story, vessel);
+            List<ProtoCrewMember> kerbalList = getViableKerbals(baseStory, vessel);
 
-            story = createStory(story, vessel, kerbalList);
+            KerbStory story = createStory(baseStory, vessel, kerbalList);
             KerbalSNSScenario.Instance.RegisterStory(story);
 
             Debug.Log("Random story has happened.");
@@ -768,7 +755,7 @@ namespace KerbalSNS
             MessageSystem.Instance.AddMessage(message);
         }
 
-        private Vessel getViableVessel(KerbStory story)
+        private Vessel getViableVessel(KerbBaseStory story)
         {
             List<Vessel> vesselList = new List<Vessel>();
             foreach (Vessel vessel in FlightGlobals.Vessels)
@@ -790,7 +777,7 @@ namespace KerbalSNS
             return vesselList[mizer.Next(vesselList.Count)];
         }
 
-        private List<ProtoCrewMember> getViableKerbals(KerbStory story, Vessel vessel)
+        private List<ProtoCrewMember> getViableKerbals(KerbBaseStory story, Vessel vessel)
         {
             List<ProtoCrewMember> vesselCrewList = vessel.GetVesselCrew();
 
@@ -809,21 +796,16 @@ namespace KerbalSNS
             return viableKerbalList;
         }
 
-        private KerbStory createStory(KerbStory baseStory, Vessel vessel, List<ProtoCrewMember> kerbalList)
+        private KerbStory createStory(KerbBaseStory baseStory, Vessel vessel, List<ProtoCrewMember> kerbalList)
         {
-            KerbStory story = new KerbStory();
-
-            story.name = baseStory.name;
-            story.kerbalCount = baseStory.kerbalCount;
-            story.type = baseStory.type;
-            story.storyText = baseStory.storyText;
+            KerbStory story = new KerbStory(baseStory);
 
             story.postedId = "TODO";
 
             story.postedOnVessel = vessel.GetDisplayName();
             story.postedTime = Planetarium.GetUniversalTime();
 
-            story.postedStoryText = baseStory.storyText;
+            story.postedStoryText = baseStory.text;
 
             String vesselType = (vessel.vesselType == VesselType.Base) ?
                 "base" : "station";
@@ -832,7 +814,8 @@ namespace KerbalSNS
             int kerbalIndex = 1;
             foreach (ProtoCrewMember kerbal in kerbalList)
             {
-                story.postedStoryText = story.postedStoryText.Replace("%k" + kerbalIndex, CrewGenerator.RemoveLastName(kerbal.name));
+                story.postedStoryText = 
+                    story.postedStoryText.Replace("%k" + kerbalIndex, CrewGenerator.RemoveLastName(kerbal.name));
                 kerbalIndex++;
             }
 
@@ -850,7 +833,7 @@ namespace KerbalSNS
                 for (int i = updatedShoutList.Count; i < KerbalSNSSettings.MaxNumOfShouts; i++)
                 {
                     // TODO fetch shouts based on current reputation, and get random from there
-                    KerbShout baseShout = baseShoutList[mizer.Next(baseShoutList.Count)];
+                    KerbBaseShout baseShout = baseShoutList[mizer.Next(baseShoutList.Count)];
 
                     String postedBy = null;
                     if (baseShout.poster == KerbShout.ShoutPoster.Any 
@@ -909,15 +892,9 @@ namespace KerbalSNS
             return freshShoutsList;
         }
 
-        private KerbShout createShout(KerbShout baseShout, String postedBy)
+        private KerbShout createShout(KerbBaseShout baseShout, String postedBy)
         {
-            KerbShout shout = new KerbShout();
-
-            shout.name = baseShout.name;
-            shout.repLevel = baseShout.repLevel;
-            shout.poster = baseShout.poster;
-            shout.type = baseShout.type;
-            shout.shout = baseShout.shout;
+            KerbShout shout = new KerbShout(baseShout);
 
             shout.postedId = "TODO";
 
@@ -926,7 +903,7 @@ namespace KerbalSNS
             shout.postedTime = Planetarium.GetUniversalTime();
 
             shout.postedShout = 
-                Regex.Replace(baseShout.shout, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
+                Regex.Replace(baseShout.text, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
             shout.postedShout =
                 Regex.Replace(shout.postedShout, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
 
@@ -937,6 +914,8 @@ namespace KerbalSNS
 
         private String makeLikeUsername(String name)
         {
+            // maybe return an already existing if one was created before
+
             String username = name;
 
             int r = mizer.Next(4);
