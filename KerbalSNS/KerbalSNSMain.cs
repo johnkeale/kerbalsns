@@ -79,40 +79,6 @@ namespace KerbalSNS
                 shout.LoadFromConfigNode(shoutNode);
                 baseShoutList.Add(shout);
             }
-            /*
-            double time = Planetarium.GetUniversalTime();
-
-            int years = ((int)time) / KSPUtil.dateTimeFormatter.Year;
-
-            int remainder = ((int)time) % KSPUtil.dateTimeFormatter.Year;
-            int days = remainder / KSPUtil.dateTimeFormatter.Day;
-
-            remainder = ((int)time) % KSPUtil.dateTimeFormatter.Day;
-            int hours = remainder / KSPUtil.dateTimeFormatter.Hour;
-
-            remainder = ((int)time) % KSPUtil.dateTimeFormatter.Hour;
-            int minutes = remainder / KSPUtil.dateTimeFormatter.Minute;
-
-            int seconds = remainder % KSPUtil.dateTimeFormatter.Minute;
-            
-            Debug.Log("time: " + time);
-            Debug.Log("years: " + years);
-            Debug.Log("days: " + days);
-            Debug.Log("hours: " + hours);
-            Debug.Log("minutes: " + minutes);
-            Debug.Log("seconds: " + seconds);
-
-            Debug.Log("PrintDate: " + KSPUtil.PrintDate(time, true));
-            Debug.Log("PrintDateCompact: " + KSPUtil.PrintDateCompact(time, true));
-            Debug.Log("PrintDateDelta: " + KSPUtil.PrintDateDelta(time, true));
-            Debug.Log("PrintDateDeltaCompact: " + KSPUtil.PrintDateDeltaCompact(time, true, false));
-            Debug.Log("PrintDateNew: " + KSPUtil.PrintDateNew(time, true));
-            
-            Debug.Log("Year: " + KSPUtil.dateTimeFormatter.Year);
-            Debug.Log("Day: " + KSPUtil.dateTimeFormatter.Day);
-            Debug.Log("Hour: " + KSPUtil.dateTimeFormatter.Hour);
-            Debug.Log("Minute: " + KSPUtil.dateTimeFormatter.Minute);
-            */
         }
 
         public void OnDestroy()
