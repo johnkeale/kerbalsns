@@ -20,6 +20,8 @@ namespace KerbalSNS
         [GameParameters.CustomIntParameterUI("Minimum story interval hours", maxValue = 24, minValue = 0, stepSize = 1, toolTip = "The minimum interval between stories happening, in hours.", autoPersistance = true)]
         public int minStoryIntervalHours = 0;
 
+        // TODO add maxNumOfStories
+
         [GameParameters.CustomIntParameterUI("Maximum number of shouts", maxValue = 100, minValue = 0, stepSize = 1, toolTip = "The maxmimum number of shouts to show on the browser.", autoPersistance = true)]
         public int maxNumOfShouts = 24;
         #endregion

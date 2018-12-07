@@ -548,11 +548,24 @@ namespace KerbalSNS
 
                             baseShout.name = "TODO";
                             baseShout.repLevel = KerbBaseShout.RepLevel.Any;
-                            baseShout.poster = KerbBaseShout.ShoutPoster.KSCEmployee;
                             baseShout.type = KerbBaseShout.ShoutType.Random;
                             baseShout.text = enteredShout;
 
-                            KerbShout shout = createShout(baseShout, randomKerbalName() + " @KSC");
+                            String postedBy = randomVesselCrewKerbalName(FlightGlobals.ActiveVessel);
+                            if (postedBy != null)
+                            {
+                                baseShout.poster = KerbBaseShout.ShoutPoster.KSCEmployee;
+
+                                postedBy = postedBy + " @KSC_" + makeLikeUsername(postedBy);
+                                // TODO check if already posted before so that usernames will be consistent
+                            }
+                            else
+                            {
+                                baseShout.poster = KerbBaseShout.ShoutPoster.KSC;
+                                postedBy = "KSC_Official @KSC_Official";
+                            }
+
+                            KerbShout shout = createShout(baseShout, postedBy);
                             KerbalSNSScenario.Instance.RegisterShout(shout);
 
                             spawnBrowserDialog(BrowserType.Shouts);
@@ -830,46 +843,98 @@ namespace KerbalSNS
 
             if (updatedShoutList.Count == 0 || updatedShoutList.Count < KerbalSNSSettings.MaxNumOfShouts)
             {
-                for (int i = updatedShoutList.Count; i < KerbalSNSSettings.MaxNumOfShouts; i++)
+                int neededShoutCount = KerbalSNSSettings.MaxNumOfShouts - updatedShoutList.Count;
+                int repLevelShoutCount = (int)Math.Ceiling(neededShoutCount * 0.6); // 60% of the shouts are repLevel shouts
+                
+                List<KerbShout> repLevelShoutList = createRepLevelShouts(repLevelShoutCount, now);
+                foreach (KerbShout shout in repLevelShoutList)
                 {
-                    // TODO fetch shouts based on current reputation, and get random from there
-                    KerbBaseShout baseShout = baseShoutList[mizer.Next(baseShoutList.Count)];
-
-                    String postedBy = null;
-                    if (baseShout.poster == KerbShout.ShoutPoster.Any 
-                        || baseShout.poster == KerbShout.ShoutPoster.Citizen
-                        || baseShout.poster == KerbShout.ShoutPoster.Unknown)
-                    {
-                        postedBy = randomKerbalName(); // TODO add checking to see if not currently in roster
-                        postedBy = postedBy + " @" + makeLikeUsername(postedBy);
-                    }
-                    if (baseShout.poster == KerbShout.ShoutPoster.VesselCrew)
-                    {
-                        postedBy = randomKerbalName(); // TODO get from vesel crews
-                        // TODO add permanent username
-                    }
-                    if (baseShout.poster == KerbShout.ShoutPoster.KSCEmployee)
-                    {
-                        postedBy = "KSC";
-                    }
-                    if (baseShout.poster == KerbShout.ShoutPoster.KSC)
-                    {
-                        postedBy = "KSC";
-                    }
-                    if (baseShout.poster == KerbShout.ShoutPoster.Specific)
-                    {
-                        postedBy = baseShout.specificPoster;
-                    }
-
-                    KerbShout shout = createShout(baseShout, postedBy); // TODO check if existing as an applicant or crew
-                    shout.postedTime = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
-
                     updatedShoutList.Add(shout);
-                    KerbalSNSScenario.Instance.RegisterShout(shout);
+                }
+
+                List<KerbShout> otherShoutList = createNonRepLevelShouts(neededShoutCount - repLevelShoutCount, now);
+                foreach (KerbShout shout in otherShoutList)
+                {
+                    updatedShoutList.Add(shout);
                 }
             }
 
             return updatedShoutList;
+        }
+
+        private List<KerbShout> createRepLevelShouts(int count, double baseTime)
+        {
+            List<KerbBaseShout> repLevelBaseShoutList =
+                baseShoutList.Where(
+                    x => (
+                        x.type == KerbBaseShout.ShoutType.RepLevel 
+                        && x.repLevel == getCurrentRepLevel()
+                    )
+                ).ToList();
+            List<KerbShout> shoutList = new List<KerbShout>();
+
+            for (int i = 0; i < count; i++)
+            {
+                KerbBaseShout baseShout = 
+                    repLevelBaseShoutList[mizer.Next(repLevelBaseShoutList.Count)];
+
+                String postedBy = buildShoutPostedBy(baseShout);
+
+                KerbShout shout = createShout(baseShout, postedBy);
+                shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
+
+                shoutList.Add(shout);
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+
+            return shoutList;
+        }
+
+        private List<KerbShout> createNonRepLevelShouts(int count, double baseTime)
+        {
+            List<KerbBaseShout> nonRepLevelBaseShoutList =
+                baseShoutList.Where(
+                    x => (
+                        x.type != KerbBaseShout.ShoutType.RepLevel
+                    )
+                ).ToList();
+            List<KerbShout> shoutList = new List<KerbShout>();
+
+            for (int i = 0; i < count; i++)
+            {
+                KerbBaseShout baseShout =
+                    nonRepLevelBaseShoutList[mizer.Next(nonRepLevelBaseShoutList.Count)];
+
+                String postedBy = buildShoutPostedBy(baseShout);
+
+                KerbShout shout = createShout(baseShout, postedBy);
+                shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
+
+                shoutList.Add(shout);
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+
+            return shoutList;
+        }
+
+        private List<KerbShout> createRandomShouts(int count, double baseTime)
+        {
+            List<KerbShout> shoutList = new List<KerbShout>();
+
+            for (int i = 0; i < count; i++)
+            {
+                KerbBaseShout baseShout = baseShoutList[mizer.Next(baseShoutList.Count)];
+
+                String postedBy = buildShoutPostedBy(baseShout);
+                
+                KerbShout shout = createShout(baseShout, postedBy);
+                shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
+
+                shoutList.Add(shout);
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+
+            return shoutList;
         }
 
         private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
@@ -910,6 +975,38 @@ namespace KerbalSNS
             // TODO add some formatting if needed
 
             return shout;
+        }
+
+        private String buildShoutPostedBy(KerbBaseShout baseShout)
+        {
+            String postedBy = null;
+            if (baseShout.poster == KerbBaseShout.ShoutPoster.Any
+                || baseShout.poster == KerbBaseShout.ShoutPoster.Citizen
+                || baseShout.poster == KerbBaseShout.ShoutPoster.Unknown)
+            {
+                postedBy = randomLayKerbalName();
+                postedBy = postedBy + " @" + makeLikeUsername(postedBy);
+            }
+            if (baseShout.poster == KerbBaseShout.ShoutPoster.VesselCrew)
+            {
+                postedBy = randomActiveCrewKerbalName();
+                postedBy = postedBy + " @" + makeLikeUsername(postedBy);
+            }
+            if (baseShout.poster == KerbBaseShout.ShoutPoster.KSCEmployee)
+            {
+                postedBy = randomLayKerbalName();
+                postedBy = postedBy + " @KSC_" + makeLikeUsername(postedBy);
+            }
+            if (baseShout.poster == KerbBaseShout.ShoutPoster.KSC)
+            {
+                postedBy = "KSC_Official @KSC_Official";
+            }
+            if (baseShout.poster == KerbBaseShout.ShoutPoster.Specific)
+            {
+                postedBy = baseShout.specificPoster;
+            }
+
+            return postedBy;
         }
 
         private String makeLikeUsername(String name)
@@ -965,6 +1062,87 @@ namespace KerbalSNS
         private String randomKerbalName()
         {
             return CrewGenerator.GetRandomName((ProtoCrewMember.Gender) mizer.Next(2), mizer);
+        }
+
+        private String randomLayKerbalName()
+        {
+            String randomName = randomKerbalName();
+            while (HighLogic.CurrentGame.CrewRoster.Exists(randomName))
+            {
+                randomName = randomKerbalName();
+            }
+            return randomName;
+        }
+
+        private String randomCrewKerbalName()
+        {
+            // TODO add sanity checks e.g. all crew is kia or missing :(
+            ProtoCrewMember kerbal = 
+                HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
+            return kerbal.name;
+        }
+
+        private String randomActiveCrewKerbalName()
+        {
+            // TODO add sanity checks e.g. all crew is kia or missing :(
+            ProtoCrewMember kerbal =
+                HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
+            while (kerbal.rosterStatus != ProtoCrewMember.RosterStatus.Assigned)
+            {
+                kerbal =
+                    HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
+            }
+            return kerbal.name;
+        }
+
+        private String randomVesselCrewKerbalName(Vessel vessel)
+        {
+            List<ProtoCrewMember> vesselCrewList = vessel.GetVesselCrew();
+            if (vesselCrewList.Count == 0)
+            {
+                return null;
+            }
+
+            ProtoCrewMember kerbal = vesselCrewList[mizer.Next(vesselCrewList.Count)];
+            return kerbal.name;
+        }
+
+        private String randomApplicantKerbalName()
+        {
+            // TODO add sanity checks e.g. all crew is kia or missing :(
+            ProtoCrewMember kerbal =
+                HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
+            while (kerbal.rosterStatus != ProtoCrewMember.RosterStatus.Available)
+            {
+                kerbal =
+                    HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
+            }
+            return kerbal.name;
+        }
+
+        private KerbShout.RepLevel getCurrentRepLevel()
+        {
+            if (-1000f <= Reputation.CurrentRep && Reputation.CurrentRep < -600f)
+            {
+                return KerbBaseShout.RepLevel.VeryLow;
+            }
+            else if (-600f <= Reputation.CurrentRep && Reputation.CurrentRep < -200f)
+            {
+                return KerbBaseShout.RepLevel.Low;
+            }
+            else if (-200f <= Reputation.CurrentRep && Reputation.CurrentRep < 200f)
+            {
+                return KerbBaseShout.RepLevel.Medium;
+            }
+            else if (200f <= Reputation.CurrentRep && Reputation.CurrentRep < 600f)
+            {
+                return KerbBaseShout.RepLevel.High;
+            }
+            else if (600f <= Reputation.CurrentRep && Reputation.CurrentRep < 1000f)
+            {
+                return KerbBaseShout.RepLevel.VeryHigh;
+            }
+            return KerbBaseShout.RepLevel.Unknown;
         }
 
         private String getRelativeTime(double time)
