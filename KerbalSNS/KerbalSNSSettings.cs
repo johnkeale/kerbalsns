@@ -11,7 +11,7 @@ namespace KerbalSNS
         [GameParameters.CustomIntParameterUI("Story chance", maxValue = 100, minValue = 1, stepSize = 1, toolTip = "Percentage chance of an story happening.", autoPersistance = true)]
         public int storyChance = 80;
 
-        [GameParameters.CustomIntParameterUI("Minimum story interval seconds", maxValue = 60, minValue = 10, stepSize = 5, toolTip = "The minimum interval between stories happening, in seconds.", autoPersistance = true)]
+        [GameParameters.CustomIntParameterUI("Minimum story interval seconds", maxValue = 60, minValue = 0, stepSize = 5, toolTip = "The minimum interval between stories happening, in seconds.", autoPersistance = true)]
         public int minStoryIntervalSeconds = 15;
 
         [GameParameters.CustomIntParameterUI("Minimum story interval minutes", maxValue = 60, minValue = 0, stepSize = 1, toolTip = "The minimum interval between stories happening, in minutes.", autoPersistance = true)]
@@ -19,8 +19,6 @@ namespace KerbalSNS
 
         [GameParameters.CustomIntParameterUI("Minimum story interval hours", maxValue = 24, minValue = 0, stepSize = 1, toolTip = "The minimum interval between stories happening, in hours.", autoPersistance = true)]
         public int minStoryIntervalHours = 0;
-
-        // TODO add maxNumOfStories
 
         [GameParameters.CustomIntParameterUI("Maximum number of shouts", maxValue = 100, minValue = 0, stepSize = 1, toolTip = "The maxmimum number of shouts to show on the browser.", autoPersistance = true)]
         public int maxNumOfShouts = 24;

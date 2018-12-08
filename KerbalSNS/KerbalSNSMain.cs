@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace KerbalSNS
 {
-    [KSPAddon(KSPAddon.Startup.Flight, false)] // TODO make it available everywhere?
+    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)] // XXX what's the diff to every scene
     class KerbalSNSMain : MonoBehaviour
     {
         #region properties
@@ -18,6 +18,9 @@ namespace KerbalSNS
         private bool isGamePaused;
         private bool isUIHidden;
         private bool shouldSpawnBrowserDialog;
+
+        private const int STORY_PER_PAGE = 10;
+        private int numOfStoryPages;
 
         private System.Random mizer;
 
@@ -39,6 +42,7 @@ namespace KerbalSNS
             this.isGamePaused = false;
             this.isUIHidden = false;
             this.shouldSpawnBrowserDialog = false;
+            this.numOfStoryPages = 1;
 
             this.appLauncherButton = null;
             this.shouldSpawnBrowserDialog = false;
@@ -105,10 +109,6 @@ namespace KerbalSNS
                 (KerbalSNSSettings.MinStoryIntervalHours * 60 * 60)
                 + (KerbalSNSSettings.MinStoryIntervalMinutes * 60)
                 + KerbalSNSSettings.MinStoryIntervalSeconds;
-            if (minTimeBetweenStories <= 0)
-            {
-                minTimeBetweenStories = 10; // 600
-            }
 
             if (this.lastStoryPostedTime + minTimeBetweenStories < Planetarium.GetUniversalTime())
             {
@@ -137,6 +137,7 @@ namespace KerbalSNS
             // XXX
             if (this.shouldSpawnBrowserDialog)
             {
+                // FIXME scroll bar is on the middle at the start
                 spawnBrowserDialog(BrowserType.Stories);
             }
         }
@@ -273,6 +274,8 @@ namespace KerbalSNS
                 scrollElementsHeight += 25;
             }
 
+            // FIXME scrolled at the middle
+
             DialogGUIBase[] scrollArray = new DialogGUIBase[scrollElementsList.Count + 1];
             scrollArray[0] = new DialogGUIContentSizer(
                 ContentSizeFitter.FitMode.Unconstrained,
@@ -360,6 +363,7 @@ namespace KerbalSNS
             postedStoriesList = postedStoriesList.OrderByDescending(s => s.postedTime).ToList();
 
             if (postedStoriesList.Count > 0) {
+                int numOfStories = 0;
 				foreach (KerbStory story in postedStoriesList)
                 {
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
@@ -397,9 +401,34 @@ namespace KerbalSNS
 							new DialogGUILabel(story.postedStoryText, true, true)
 						}
 					));
+
+                    if (numOfStories == (STORY_PER_PAGE * this.numOfStoryPages))
+                    {
+                        scrollElementsList.Add(new DialogGUIHorizontalLayout(
+                            true,
+                            true,
+                            4,
+                            new RectOffset(),
+                            TextAnchor.MiddleCenter,
+                            new DialogGUIBase[] {
+                                new DialogGUIButton(
+                                    "Load more stories...",
+                                    delegate {
+                                        this.numOfStoryPages++;
+                                        spawnBrowserDialog(BrowserType.Stories);
+                                    },
+                                    true
+                                ),
+                            }
+                        ));
+                        break;
+                    }
+                    else
+                    {
+                        numOfStories++;
+                    }
 				}
 
-                // TODO limit loaded stories
 
 			}
             else
@@ -517,18 +546,23 @@ namespace KerbalSNS
                             baseShout.type = KerbBaseShout.ShoutType.Random;
                             baseShout.text = enteredShout;
 
-                            String postedBy = randomVesselCrewKerbalName(FlightGlobals.ActiveVessel);
-                            if (postedBy != null)
+                            baseShout.poster = KerbBaseShout.ShoutPoster.KSC;
+                            String postedBy = "KSC_Official @KSC_Official";
+                            if (FlightGlobals.ActiveVessel != null)
                             {
-                                baseShout.poster = KerbBaseShout.ShoutPoster.KSCEmployee;
+                                postedBy = randomVesselCrewKerbalName(FlightGlobals.ActiveVessel);
+                                if (postedBy != null)
+                                {
+                                    baseShout.poster = KerbBaseShout.ShoutPoster.KSCEmployee;
+                                    postedBy = postedBy + " @KSC_" + makeLikeUsername(postedBy);
 
-                                postedBy = postedBy + " @KSC_" + makeLikeUsername(postedBy);
-                                // TODO check if already posted before so that usernames will be consistent
-                            }
-                            else
-                            {
-                                baseShout.poster = KerbBaseShout.ShoutPoster.KSC;
-                                postedBy = "KSC_Official @KSC_Official";
+                                    // TODO check if already posted before so that usernames will be consistent
+                                }
+                                else
+                                {
+                                    baseShout.poster = KerbBaseShout.ShoutPoster.KSC;
+                                    postedBy = "KSC_Official @KSC_Official";
+                                }
                             }
 
                             KerbShout shout = createShout(baseShout, postedBy);
@@ -669,6 +703,7 @@ namespace KerbalSNS
             this.shouldSpawnBrowserDialog = false;
             PopupDialog.DismissPopup("browseStoriesDialog");
             PopupDialog.DismissPopup("browseShoutsDialog");
+            this.numOfStoryPages = 1;
         }
 
         private void createLauncher()
@@ -682,11 +717,10 @@ namespace KerbalSNS
                     null,
                     null,
                     null,
-                    //ApplicationLauncher.AppScenes.SPACECENTER |
-                    //ApplicationLauncher.AppScenes.TRACKSTATION |
-                    //ApplicationLauncher.AppScenes.FLIGHT |
-                    //ApplicationLauncher.AppScenes.MAPVIEW,
-                    ApplicationLauncher.AppScenes.FLIGHT,
+                    ApplicationLauncher.AppScenes.SPACECENTER
+                    | ApplicationLauncher.AppScenes.TRACKSTATION
+                    | ApplicationLauncher.AppScenes.FLIGHT
+                    | ApplicationLauncher.AppScenes.MAPVIEW,
                     GameDatabase.Instance.GetTexture("KerbalSNS/app-launcher-icon", false)
                 );
             }
@@ -736,16 +770,14 @@ namespace KerbalSNS
 
         private Vessel getViableVessel(KerbBaseStory story)
         {
-            List<Vessel> vesselList = new List<Vessel>();
-            foreach (Vessel vessel in FlightGlobals.Vessels)
+            List<Vessel> vesselList = 
+                FlightGlobals.Vessels.Where(
+                    x => (x.GetCrewCount() >= story.kerbalCount
+                        && (x.vesselType == VesselType.Base
+                            || x.vesselType == VesselType.Station))).ToList();
+            if (FlightGlobals.ActiveVessel != null)
             {
-                if (!FlightGlobals.ActiveVessel.Equals(vessel)
-                    && vessel.GetCrewCount() >= story.kerbalCount
-                    && (vessel.vesselType == VesselType.Base
-                        || vessel.vesselType == VesselType.Station))
-                {
-                    vesselList.Add(vessel);
-                }
+                vesselList.Remove(FlightGlobals.ActiveVessel);
             }
 
             if (vesselList.Count == 0)
@@ -812,13 +844,26 @@ namespace KerbalSNS
                 int neededShoutCount = KerbalSNSSettings.MaxNumOfShouts - updatedShoutList.Count;
                 int repLevelShoutCount = (int)Math.Ceiling(neededShoutCount * 0.6); // 60% of the shouts are repLevel shouts
                 
-                List<KerbShout> repLevelShoutList = createRepLevelShouts(repLevelShoutCount, now);
+                List<KerbShout> repLevelShoutList = 
+                    generateShouts(
+                        x => (
+                            x.type == KerbBaseShout.ShoutType.RepLevel
+                            && x.repLevel == getCurrentRepLevel()
+                        ), 
+                        repLevelShoutCount, 
+                        now);
                 foreach (KerbShout shout in repLevelShoutList)
                 {
                     updatedShoutList.Add(shout);
                 }
 
-                List<KerbShout> otherShoutList = createNonRepLevelShouts(neededShoutCount - repLevelShoutCount, now);
+                List<KerbShout> otherShoutList =
+                    generateShouts(
+                        x => (
+                            x.type != KerbBaseShout.ShoutType.RepLevel
+                        ), 
+                        neededShoutCount - repLevelShoutCount, 
+                        now);
                 foreach (KerbShout shout in otherShoutList)
                 {
                     updatedShoutList.Add(shout);
@@ -828,15 +873,9 @@ namespace KerbalSNS
             return updatedShoutList;
         }
 
-        private List<KerbShout> createRepLevelShouts(int count, double baseTime)
+        private List<KerbShout> generateShouts(Func<KerbBaseShout, bool> predicate, int count, double baseTime)
         {
-            List<KerbBaseShout> repLevelBaseShoutList =
-                baseShoutList.Where(
-                    x => (
-                        x.type == KerbBaseShout.ShoutType.RepLevel 
-                        && x.repLevel == getCurrentRepLevel()
-                    )
-                ).ToList();
+            List<KerbBaseShout> repLevelBaseShoutList = baseShoutList.Where(predicate).ToList();
             List<KerbShout> shoutList = new List<KerbShout>();
 
             for (int i = 0; i < count; i++)
@@ -846,53 +885,6 @@ namespace KerbalSNS
 
                 String postedBy = buildShoutPostedBy(baseShout);
 
-                KerbShout shout = createShout(baseShout, postedBy);
-                shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
-
-                shoutList.Add(shout);
-                KerbalSNSScenario.Instance.RegisterShout(shout);
-            }
-
-            return shoutList;
-        }
-
-        private List<KerbShout> createNonRepLevelShouts(int count, double baseTime)
-        {
-            List<KerbBaseShout> nonRepLevelBaseShoutList =
-                baseShoutList.Where(
-                    x => (
-                        x.type != KerbBaseShout.ShoutType.RepLevel
-                    )
-                ).ToList();
-            List<KerbShout> shoutList = new List<KerbShout>();
-
-            for (int i = 0; i < count; i++)
-            {
-                KerbBaseShout baseShout =
-                    nonRepLevelBaseShoutList[mizer.Next(nonRepLevelBaseShoutList.Count)];
-
-                String postedBy = buildShoutPostedBy(baseShout);
-
-                KerbShout shout = createShout(baseShout, postedBy);
-                shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
-
-                shoutList.Add(shout);
-                KerbalSNSScenario.Instance.RegisterShout(shout);
-            }
-
-            return shoutList;
-        }
-
-        private List<KerbShout> createRandomShouts(int count, double baseTime)
-        {
-            List<KerbShout> shoutList = new List<KerbShout>();
-
-            for (int i = 0; i < count; i++)
-            {
-                KerbBaseShout baseShout = baseShoutList[mizer.Next(baseShoutList.Count)];
-
-                String postedBy = buildShoutPostedBy(baseShout);
-                
                 KerbShout shout = createShout(baseShout, postedBy);
                 shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
 

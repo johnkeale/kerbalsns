@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace KerbalSNS
 {
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.FLIGHT)]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames, GameScenes.SPACECENTER, GameScenes.FLIGHT, GameScenes.TRACKSTATION)]
     public class KerbalSNSScenario : ScenarioModule
     {
         public static KerbalSNSScenario Instance;
