@@ -20,8 +20,14 @@ namespace KerbalSNS
         [GameParameters.CustomIntParameterUI("Minimum story interval hours", maxValue = 6, minValue = 0, stepSize = 1, toolTip = "The minimum interval between stories happening, in hours.", autoPersistance = true)]
         public int minStoryIntervalHours = 2;
 
-        [GameParameters.CustomIntParameterUI("Maximum number of shouts", maxValue = 100, minValue = 0, stepSize = 1, toolTip = "The maxmimum number of shouts to show on the browser.", autoPersistance = true)]
-        public int maxNumOfShouts = 24;
+        // TODO add day?
+
+        [GameParameters.CustomIntParameterUI("Number of shouts", maxValue = 100, minValue = 5, stepSize = 1, toolTip = "The number of shouts to show on the browser.", autoPersistance = true)]
+        public int numOfShouts = 24;
+
+        [GameParameters.CustomIntParameterUI("RepLevel shout percentage", maxValue = 100, minValue = 0, stepSize = 1, toolTip = "The number of shouts pertaining to your rep level among all the shouts in the feed. (e.g. 60% of 24 shouts means around 14 shouts will talk about your reputation)", autoPersistance = true)]
+        public int repLevelShoutPercentage = 60;
+
         #endregion
 
         #region parameter getter methods
@@ -61,14 +67,24 @@ namespace KerbalSNS
             }
         }
 
-        public static int MaxNumOfShouts
+        public static int NumOfShouts
         {
             get
             {
                 KerbalSNSSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<KerbalSNSSettings>();
-                return settings.maxNumOfShouts;
+                return settings.numOfShouts;
             }
         }
+
+        public static int RepLevelShoutPercentage
+        {
+            get
+            {
+                KerbalSNSSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<KerbalSNSSettings>();
+                return settings.repLevelShoutPercentage;
+            }
+        }
+
         #endregion
 
         #region overriden methods

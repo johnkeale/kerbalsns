@@ -839,10 +839,19 @@ namespace KerbalSNS
             List<KerbShout> updatedShoutList = 
                 purgeOldShouts(shoutList, now, KSPUtil.dateTimeFormatter.Hour);
 
-            if (updatedShoutList.Count == 0 || updatedShoutList.Count < KerbalSNSSettings.MaxNumOfShouts)
+            // ProgressTracking.Instance.FindNode("FirstLaunch").IsComplete
+            
+            if (updatedShoutList.Count == 0 || updatedShoutList.Count < KerbalSNSSettings.NumOfShouts)
+            {
+                int neededShoutCount = KerbalSNSSettings.NumOfShouts - updatedShoutList.Count; // FIXME this creates repLevel shouts based only on neededShouts, so the percentage will be off
+                int repLevelShoutCount = (int)Math.Ceiling(neededShoutCount * (KerbalSNSSettings.RepLevelShoutPercentage / 100.0f));
+
+                int outlierRepLevelShoutCount = 0;
+                if (repLevelShoutCount > 5)
                 {
-                int neededShoutCount = KerbalSNSSettings.MaxNumOfShouts - updatedShoutList.Count;
-                int repLevelShoutCount = (int)Math.Ceiling(neededShoutCount * 0.6); // 60% of the shouts are repLevel shouts
+                    outlierRepLevelShoutCount = mizer.Next(2) + 1;
+                    repLevelShoutCount -= outlierRepLevelShoutCount;
+                }
                 
                 List<KerbShout> repLevelShoutList = 
                     generateShouts(
@@ -853,6 +862,19 @@ namespace KerbalSNS
                         repLevelShoutCount, 
                         now);
                 foreach (KerbShout shout in repLevelShoutList)
+                {
+                    updatedShoutList.Add(shout);
+                }
+
+                List<KerbShout> outlierRepLevelShoutList =
+                    generateShouts(
+                        x => (
+                            x.type == KerbBaseShout.ShoutType.RepLevel
+                            && x.repLevel != getCurrentRepLevel()
+                        ),
+                        outlierRepLevelShoutCount,
+                        now);
+                foreach (KerbShout shout in outlierRepLevelShoutList)
                 {
                     updatedShoutList.Add(shout);
                 }
@@ -875,17 +897,19 @@ namespace KerbalSNS
 
         private List<KerbShout> generateShouts(Func<KerbBaseShout, bool> predicate, int count, double baseTime)
         {
-            List<KerbBaseShout> repLevelBaseShoutList = baseShoutList.Where(predicate).ToList();
+            List<KerbBaseShout> filteredBaseShoutList = baseShoutList.Where(predicate).ToList();
+            filteredBaseShoutList = filterShoutsByProgressReqt(filteredBaseShoutList);
+
             List<KerbShout> shoutList = new List<KerbShout>();
 
             for (int i = 0; i < count; i++)
             {
                 KerbBaseShout baseShout =
-                    repLevelBaseShoutList[mizer.Next(repLevelBaseShoutList.Count)];
+                    filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
 
                 String postedBy = buildShoutPostedBy(baseShout);
 
-                KerbShout shout = createShout(baseShout, postedBy);
+                KerbShout shout = createShout(baseShout, postedBy); // TODO add maximum time? (e.g. don't insert shouts on the list)
                 shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
 
                 shoutList.Add(shout);
@@ -895,6 +919,32 @@ namespace KerbalSNS
             return shoutList;
         }
 
+        private List<KerbBaseShout> filterShoutsByProgressReqt(List<KerbBaseShout> shoutList)
+        {
+            List<KerbBaseShout> filteredShoutsList = new List<KerbBaseShout>();
+            foreach (KerbBaseShout baseShout in shoutList)
+            {
+                if (baseShout.progressReqtArray == null)
+                {
+                    filteredShoutsList.Add(baseShout);
+                }
+                else
+                {
+                    bool hasAchievedProgressReqt = true;
+                    foreach (String progressReqt in baseShout.progressReqtArray)
+                    {
+                        hasAchievedProgressReqt = hasAchievedProgressReqt && checkIfAchieved(progressReqt);
+                    }
+
+                    if (hasAchievedProgressReqt)
+                    {
+                        filteredShoutsList.Add(baseShout);
+                    }
+                }
+            }
+
+            return filteredShoutsList;
+        }
             private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
         {
             List<KerbShout> freshShoutsList = new List<KerbShout>();
@@ -967,6 +1017,34 @@ namespace KerbalSNS
             }
 
             return postedBy;
+        }
+
+        private bool checkIfAchieved(String progressName)
+        {
+            bool isNegated = progressName.StartsWith("!");
+            if (isNegated)
+            {
+                progressName = progressName.Substring(1, progressName.Length - 1);
+            }
+
+            ProgressNode progressNode = ProgressTracking.Instance.FindNode(progressName);
+            foreach (CelestialBody body in FlightGlobals.Bodies)
+            {
+                if (progressName.StartsWith(body.name))
+                {
+                    progressName = progressName.Substring(body.name.Length, progressName.Length - body.name.Length);
+                    progressNode = ProgressTracking.Instance.FindNode(body.name, progressName);
+                }
+            }
+            
+            if (progressNode != null)
+            {
+                return (isNegated ? !progressNode.IsComplete : progressNode.IsComplete);
+            }
+            else
+            {
+                return isNegated;
+            }
         }
 
         private String makeLikeUsername(String name)
