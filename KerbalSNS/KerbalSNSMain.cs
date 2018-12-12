@@ -7,6 +7,7 @@ using KSP.UI.Screens;
 using UnityEngine.UI;
 using System.Linq;
 using System.Text.RegularExpressions;
+using TMPro;
 
 namespace KerbalSNS
 {
@@ -27,6 +28,13 @@ namespace KerbalSNS
         private double lastStoryPostedTime = 0; // TODO rename
         private List<KerbBaseStory> baseStoryList;
         private List<KerbBaseShout> baseShoutList;
+
+        private DialogGUITextInput shoutTextInput;
+        private PopupDialog browserDialog;
+
+        private Vector2 lastBrowserPosition;
+        private const float BROWSER_WIDTH = 340;
+        private const float BROWSER_HEIGHT = 640;
         #endregion
 
         #region inherited methods
@@ -45,7 +53,7 @@ namespace KerbalSNS
             this.numOfStoryPages = 1;
 
             this.appLauncherButton = null;
-            this.shouldSpawnBrowserDialog = false;
+            this.lastBrowserPosition = new Vector2(0.5f, 0.5f);
 
             GameEvents.onGUIApplicationLauncherReady.Add(onGUIApplicationLauncherReady);
             GameEvents.onGameSceneSwitchRequested.Add(onGameSceneSwitchRequested);
@@ -166,6 +174,7 @@ namespace KerbalSNS
                     new DialogGUIButton(
                         "KSC's Random Stories",
                         delegate {
+                            saveLastBrowserDialogPosition();
                             spawnBrowserDialog(BrowserType.Stories);
                         },
                         () => (browserType == BrowserType.Shouts),
@@ -174,6 +183,7 @@ namespace KerbalSNS
                     new DialogGUIButton(
                         "Kerbshouts!",
                         delegate {
+                            saveLastBrowserDialogPosition();
                             spawnBrowserDialog(BrowserType.Shouts);
                         },
                         () => (browserType == BrowserType.Stories),
@@ -221,6 +231,7 @@ namespace KerbalSNS
                     new DialogGUIButton(
                         "Refresh",
                         delegate {
+                            saveLastBrowserDialogPosition();
                             spawnBrowserDialog(browserType);
                         },
                         true
@@ -303,20 +314,22 @@ namespace KerbalSNS
 
             dialogElementsList.Add(new DialogGUISpace(4));
 
-            PopupDialog.SpawnPopupDialog(
-                new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f),
-                new MultiOptionDialog(
-                    dialogName,
-                    "",
-                    "",
-                    UISkinManager.defaultSkin,
-                    new Rect(0.5f, 0.5f, 340, 640),
-                    dialogElementsList.ToArray()
-                ),
-                false,
-                UISkinManager.defaultSkin
-            );
+            this.browserDialog =
+                PopupDialog.SpawnPopupDialog(
+                    new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, 0.5f),
+                    new MultiOptionDialog(
+                        dialogName,
+                        "",
+                        "",
+                        UISkinManager.defaultSkin,
+                        new Rect(this.lastBrowserPosition, new Vector2(BROWSER_WIDTH, BROWSER_HEIGHT)),
+                        dialogElementsList.ToArray()
+                    ),
+                    false,
+                    UISkinManager.defaultSkin
+                );
+            addShoutTextInputLocking();
         }
         
         private List<DialogGUIHorizontalLayout> buildStoriesScrollElementsList()
@@ -415,6 +428,7 @@ namespace KerbalSNS
                                     "Load more stories...",
                                     delegate {
                                         this.numOfStoryPages++;
+                                        saveLastBrowserDialogPosition();
                                         spawnBrowserDialog(BrowserType.Stories);
                                     },
                                     true
@@ -503,6 +517,20 @@ namespace KerbalSNS
             ));
 
             String enteredShout = "";
+            this.shoutTextInput = 
+                new DialogGUITextInput(
+                    enteredShout,
+                    "<color=#8B907D>What are you thinking?</color>",
+                    false,
+                    200,
+                    delegate (String s)
+                    {
+                        enteredShout = s;
+                        return s;
+                    },
+                    25
+                );
+
             scrollElementsList.Add(new DialogGUIHorizontalLayout(
                 TextAnchor.MiddleCenter,
                 new DialogGUIBase[] {
@@ -524,18 +552,7 @@ namespace KerbalSNS
                             )
                         }
                     ),
-                    new DialogGUITextInput(
-                        enteredShout,
-                        "<color=#8B907D>What are you thinking?</color>",
-                        false,
-                        200,
-                        delegate (String s) {
-                            enteredShout = s;
-                            // TODO block key press
-                            return s;
-                        },
-                        25
-                    ),
+                    this.shoutTextInput,
                     new DialogGUIButton(
                         "Shout!",
                         delegate {
@@ -568,6 +585,7 @@ namespace KerbalSNS
                             KerbShout shout = createShout(baseShout, postedBy);
                             KerbalSNSScenario.Instance.RegisterShout(shout);
 
+                            saveLastBrowserDialogPosition();
                             spawnBrowserDialog(BrowserType.Shouts);
                         },
                         true
@@ -607,7 +625,7 @@ namespace KerbalSNS
                                 )
                             }
                         ),
-                        // where the tweet is
+                        // where the shout is
                         new DialogGUIVerticalLayout(
                             10,
                             25,
@@ -701,8 +719,11 @@ namespace KerbalSNS
         public void onAppFalse()
         {
             this.shouldSpawnBrowserDialog = false;
+
+            saveLastBrowserDialogPosition();
             PopupDialog.DismissPopup("browseStoriesDialog");
             PopupDialog.DismissPopup("browseShoutsDialog");
+
             this.numOfStoryPages = 1;
         }
 
@@ -964,7 +985,8 @@ namespace KerbalSNS
                 return hasAchievedProgressReqt;
             }
         }
-            private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
+
+        private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
         {
             List<KerbShout> freshShoutsList = new List<KerbShout>();
 
@@ -1220,6 +1242,33 @@ namespace KerbalSNS
                 return days + " days ago";
 
             return years <= 1 ? "one year ago" : years + " years ago";
+        }
+
+        private void saveLastBrowserDialogPosition()
+        {
+            Vector3 position = this.browserDialog.RTrf.position;
+            this.lastBrowserPosition = 
+                new Vector2(position.x / Screen.width + 0.5f, position.y / Screen.height + 0.5f);
+        }
+
+        // https://forum.kerbalspaceprogram.com/index.php?/topic/149324-popupdialog-and-the-dialoggui-classes/&do=findComment&comment=3213159
+        private void addShoutTextInputLocking()
+        {
+            TMP_InputField tmp_input = this.shoutTextInput.uiItem.GetComponent<TMP_InputField>();
+
+            tmp_input.onSelect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputSelect));
+            tmp_input.onDeselect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputDeselect));
+        }
+
+        // https://forum.kerbalspaceprogram.com/index.php?/topic/151312-preventing-keystroke-fallthrough-on-text-field-usage-between-different-modsinputlockmanager/
+        private void OnShoutTextInputSelect(String s)
+        {
+            InputLockManager.SetControlLock(ControlTypes.KEYBOARDINPUT, "KerbalSNS");
+        }
+
+        private void OnShoutTextInputDeselect(String s)
+        {
+            InputLockManager.RemoveControlLock("KerbalSNS");
         }
 
         #endregion
