@@ -740,7 +740,9 @@ namespace KerbalSNS
         
         private void postStory()
         {
-            KerbBaseStory baseStory = baseStoryList[mizer.Next(baseStoryList.Count)];
+            List<KerbBaseStory> filteredBaseStoryList = 
+                baseStoryList.Where(x => hasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
+            KerbBaseStory baseStory = filteredBaseStoryList[mizer.Next(filteredBaseStoryList.Count)];
 
             Vessel vessel = getViableVessel(baseStory);
             if (vessel == null)
@@ -898,7 +900,8 @@ namespace KerbalSNS
         private List<KerbShout> generateShouts(Func<KerbBaseShout, bool> predicate, int count, double baseTime)
         {
             List<KerbBaseShout> filteredBaseShoutList = baseShoutList.Where(predicate).ToList();
-            filteredBaseShoutList = filterShoutsByProgressReqt(filteredBaseShoutList);
+            filteredBaseShoutList = 
+                filteredBaseShoutList.Where(x => hasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
 
             List<KerbShout> shoutList = new List<KerbShout>();
 
@@ -919,31 +922,47 @@ namespace KerbalSNS
             return shoutList;
         }
 
-        private List<KerbBaseShout> filterShoutsByProgressReqt(List<KerbBaseShout> shoutList)
+        private bool hasAchievedAllProgressReqt(String[] progressReqtArray)
         {
-            List<KerbBaseShout> filteredShoutsList = new List<KerbBaseShout>();
-            foreach (KerbBaseShout baseShout in shoutList)
+            if (progressReqtArray == null)
             {
-                if (baseShout.progressReqtArray == null)
-                {
-                    filteredShoutsList.Add(baseShout);
-                }
-                else
-                {
-                    bool hasAchievedProgressReqt = true;
-                    foreach (String progressReqt in baseShout.progressReqtArray)
-                    {
-                        hasAchievedProgressReqt = hasAchievedProgressReqt && checkIfAchieved(progressReqt);
-                    }
-
-                    if (hasAchievedProgressReqt)
-                    {
-                        filteredShoutsList.Add(baseShout);
-                    }
-                }
+                return true; // no requirements, so technically, has achieved them all
             }
+            else
+            {
+                bool hasAchievedProgressReqt = true;
+                foreach (String progressReqt in progressReqtArray)
+                {
+                    String progressName = progressReqt;
+                    bool isNegated = progressName.StartsWith("!");
+                    if (isNegated)
+                    {
+                        progressName = progressName.Substring(1, progressName.Length - 1);
+                    }
 
-            return filteredShoutsList;
+                    ProgressNode progressNode = ProgressTracking.Instance.FindNode(progressName);
+                    if (progressNode == null)
+                    {
+                        CelestialBody body = FlightGlobals.Bodies.FirstOrDefault(b => progressName.StartsWith(b.name));
+                        if (body != null)
+                        {
+                            progressName = progressName.Substring(body.name.Length, progressName.Length - body.name.Length);
+                            progressNode = ProgressTracking.Instance.FindNode(body.name, progressName);
+                        }
+                    }
+
+                    if (progressNode != null)
+                    {
+                        hasAchievedProgressReqt = hasAchievedProgressReqt && (isNegated ? !progressNode.IsComplete : progressNode.IsComplete);
+                    }
+                    else
+                    {
+                        hasAchievedProgressReqt = hasAchievedProgressReqt && isNegated;
+                    }
+                }
+
+                return hasAchievedProgressReqt;
+            }
         }
             private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
         {
@@ -1017,34 +1036,6 @@ namespace KerbalSNS
             }
 
             return postedBy;
-        }
-
-        private bool checkIfAchieved(String progressName)
-        {
-            bool isNegated = progressName.StartsWith("!");
-            if (isNegated)
-            {
-                progressName = progressName.Substring(1, progressName.Length - 1);
-            }
-
-            ProgressNode progressNode = ProgressTracking.Instance.FindNode(progressName);
-            foreach (CelestialBody body in FlightGlobals.Bodies)
-            {
-                if (progressName.StartsWith(body.name))
-                {
-                    progressName = progressName.Substring(body.name.Length, progressName.Length - body.name.Length);
-                    progressNode = ProgressTracking.Instance.FindNode(body.name, progressName);
-                }
-            }
-            
-            if (progressNode != null)
-            {
-                return (isNegated ? !progressNode.IsComplete : progressNode.IsComplete);
-            }
-            else
-            {
-                return isNegated;
-            }
         }
 
         private String makeLikeUsername(String name)
