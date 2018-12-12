@@ -237,7 +237,7 @@ namespace KerbalSNS
                         },
                         25
                     ),*/
-                    new DialogGUIButton(
+            new DialogGUIButton(
                         "Go",
                         delegate {
 
@@ -398,7 +398,7 @@ namespace KerbalSNS
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
 						TextAnchor.MiddleCenter,
 						new DialogGUIBase[] {
-							new DialogGUILabel(story.postedStoryText, true, true)
+							new DialogGUILabel(story.postedText, true, true)
 						}
 					));
 
@@ -620,7 +620,7 @@ namespace KerbalSNS
                                     + " " + getRelativeTime(shout.postedTime),
                                     true,
                                     true),
-                                new DialogGUILabel(shout.postedShout, true, true)
+                                new DialogGUILabel(shout.postedText, true, true)
                             }
                         )
                     }
@@ -760,7 +760,7 @@ namespace KerbalSNS
 
             MessageSystem.Message message = new MessageSystem.Message(
                 "A random story happened at " + vessel.GetDisplayName() + "!",
-                story.postedStoryText,
+                story.postedText,
                 MessageSystemButton.MessageButtonColor.BLUE,
                 MessageSystemButton.ButtonIcons.MESSAGE
             );
@@ -816,17 +816,17 @@ namespace KerbalSNS
             story.postedOnVessel = vessel.GetDisplayName();
             story.postedTime = Planetarium.GetUniversalTime();
 
-            story.postedStoryText = baseStory.text;
+            story.postedText = baseStory.text;
 
             String vesselType = (vessel.vesselType == VesselType.Base) ?
                 "base" : "station";
-            story.postedStoryText = story.postedStoryText.Replace("%v", vesselType);
+            story.postedText = story.postedText.Replace("%v", vesselType);
 
             int kerbalIndex = 1;
             foreach (ProtoCrewMember kerbal in kerbalList)
             {
-                story.postedStoryText = 
-                    story.postedStoryText.Replace("%k" + kerbalIndex, CrewGenerator.RemoveLastName(kerbal.name));
+                story.postedText = 
+                    story.postedText.Replace("%k" + kerbalIndex, CrewGenerator.RemoveLastName(kerbal.name));
                 kerbalIndex++;
             }
 
@@ -840,7 +840,7 @@ namespace KerbalSNS
                 purgeOldShouts(shoutList, now, KSPUtil.dateTimeFormatter.Hour);
 
             if (updatedShoutList.Count == 0 || updatedShoutList.Count < KerbalSNSSettings.MaxNumOfShouts)
-            {
+                {
                 int neededShoutCount = KerbalSNSSettings.MaxNumOfShouts - updatedShoutList.Count;
                 int repLevelShoutCount = (int)Math.Ceiling(neededShoutCount * 0.6); // 60% of the shouts are repLevel shouts
                 
@@ -880,7 +880,7 @@ namespace KerbalSNS
 
             for (int i = 0; i < count; i++)
             {
-                KerbBaseShout baseShout = 
+                KerbBaseShout baseShout =
                     repLevelBaseShoutList[mizer.Next(repLevelBaseShoutList.Count)];
 
                 String postedBy = buildShoutPostedBy(baseShout);
@@ -895,7 +895,7 @@ namespace KerbalSNS
             return shoutList;
         }
 
-        private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
+            private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
         {
             List<KerbShout> freshShoutsList = new List<KerbShout>();
 
@@ -925,13 +925,13 @@ namespace KerbalSNS
                 Regex.Replace(postedBy, "@([\\w]+)", "<color=#CBF856><u>@$1</u></color>", RegexOptions.IgnoreCase);
             shout.postedTime = Planetarium.GetUniversalTime();
 
-            shout.postedShout = 
+            shout.postedText = 
                 Regex.Replace(baseShout.text, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
-            shout.postedShout =
-                Regex.Replace(shout.postedShout, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
+            shout.postedText =
+                Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
 
             // TODO add some formatting if needed
-
+            
             return shout;
         }
 
@@ -948,7 +948,7 @@ namespace KerbalSNS
             if (baseShout.poster == KerbBaseShout.ShoutPoster.VesselCrew)
             {
                 postedBy = randomActiveCrewKerbalName();
-                postedBy = postedBy + " @" + makeLikeUsername(postedBy);
+                postedBy = postedBy + " @KSC_" + makeLikeUsername(postedBy);
             }
             if (baseShout.poster == KerbBaseShout.ShoutPoster.KSCEmployee)
             {
@@ -962,6 +962,8 @@ namespace KerbalSNS
             if (baseShout.poster == KerbBaseShout.ShoutPoster.Specific)
             {
                 postedBy = baseShout.specificPoster;
+                String[] acctComponents = postedBy.Split(new String[] { " @" }, StringSplitOptions.None);
+                KerbalSNSScenario.Instance.SaveShoutAcct(new KerbShout.Acct(acctComponents[0], acctComponents[1]));
             }
 
             return postedBy;
@@ -969,7 +971,11 @@ namespace KerbalSNS
 
         private String makeLikeUsername(String name)
         {
-            // maybe return an already existing if one was created before
+            KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(name);
+            if (shoutAcct != null)
+            {
+                return shoutAcct.username;
+            }
 
             String username = name;
 
@@ -987,33 +993,34 @@ namespace KerbalSNS
                 username = CrewGenerator.RemoveLastName(name);
             }
             
-            r = mizer.Next(8);
+            r = mizer.Next(13);
             if (r < 3)
             {
                 username = Regex.Replace(username, "o", "0", RegexOptions.IgnoreCase);
             }
-            r = mizer.Next(8);
+            r = mizer.Next(13);
             if (r < 3)
             {
                 username = Regex.Replace(username, "i", "1", RegexOptions.IgnoreCase);
             }
-            r = mizer.Next(8);
+            r = mizer.Next(13);
             if (r < 3)
             {
                 username = Regex.Replace(username, "l", "2", RegexOptions.IgnoreCase);
             }
-            r = mizer.Next(8);
+            r = mizer.Next(13);
             if (r < 3)
             {
                 username = Regex.Replace(username, "e", "3", RegexOptions.IgnoreCase);
             }
 
-            r = mizer.Next(4);
+            r = mizer.Next(13);
             if (r < 1)
             {
                 username = username + mizer.Next(1000);
             }
 
+            KerbalSNSScenario.Instance.SaveShoutAcct(new KerbShout.Acct(name, username));
             return username;
         }
 

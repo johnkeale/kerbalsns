@@ -14,6 +14,7 @@ namespace KerbalSNS
         #region properties
         protected List<KerbStory> storyList = new List<KerbStory>();
         protected List<KerbShout> shoutList = new List<KerbShout>();
+        protected List<KerbShout.Acct> shoutAcctList = new List<KerbShout.Acct>();
         #endregion
 
         #region inherited methods
@@ -42,6 +43,14 @@ namespace KerbalSNS
                 shout.LoadFromConfigNode(shoutNode);
                 shoutList.Add(shout);
             }
+
+            ConfigNode[] shoutAcctArray = node.GetNodes(KerbShout.Acct.NODE_NAME);
+            foreach (ConfigNode shoutAcctNode in shoutAcctArray)
+            {
+                KerbShout.Acct shoutAcct = new KerbShout.Acct();
+                shoutAcct.LoadFromConfigNode(shoutAcctNode);
+                shoutAcctList.Add(shoutAcct);
+            }
         }
 
         public override void OnSave(ConfigNode node)
@@ -58,6 +67,11 @@ namespace KerbalSNS
                 node.AddNode(KerbShout.NODE_NAME, shout.SaveToConfigNode());
             }
             
+            foreach (KerbShout.Acct shoutAcct in this.shoutAcctList)
+            {
+                node.AddNode(KerbShout.Acct.NODE_NAME, shoutAcct.SaveToConfigNode());
+            }
+
         }
         #endregion
 
@@ -96,6 +110,19 @@ namespace KerbalSNS
         public void DeleteShout(KerbShout shout)
         {
             this.shoutList.Remove(shout);
+        }
+
+        public KerbShout.Acct FindShoutAcct(String fullname)
+        {
+            return shoutAcctList.FirstOrDefault(a => a.fullname.Equals(fullname));
+        }
+
+        public void SaveShoutAcct(KerbShout.Acct shoutAcct)
+        {
+            if (FindShoutAcct(shoutAcct.fullname) == null)
+            {
+                this.shoutAcctList.Add(shoutAcct);
+            }
         }
         #endregion
 

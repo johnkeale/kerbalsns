@@ -51,7 +51,7 @@ namespace KerbalSNS
 		public String specificPoster { get; set; }
         public ShoutType type { get; set; }
         public String text { get; set; }
-		public String reqdMilestone; // TODO
+        public String[] progressReqtArray { get; set; }
         public bool isRepeatable { get; set; }
 
         public virtual void LoadFromConfigNode(ConfigNode node)
@@ -148,6 +148,12 @@ namespace KerbalSNS
             }
             
             this.text = node.GetValue("text");
+
+            if (node.HasValue("progressReqt"))
+            {
+                this.progressReqtArray = node.GetValue("progressReqt").
+                    Split(new String[] { "," }, StringSplitOptions.None).Select(x => x.Trim()).ToArray();
+            }
         }
 
         public virtual ConfigNode SaveToConfigNode()
@@ -251,7 +257,48 @@ namespace KerbalSNS
 
             node.SetValue("text", this.text, true);
 
+            if (this.progressReqtArray != null)
+            {
+                node.SetValue("progressReqt", String.Join(",", this.progressReqtArray), true);
+            }
+            else
+            {
+                node.SetValue("progressReqt", "");
+            }
+
             return node;
+        }
+
+        public class Acct
+        {
+            public const String NODE_NAME = "KERBSHOUTACCT";
+
+            public String fullname { get; set; }
+            public String username { get; set; }
+
+            public Acct() { }
+
+            public Acct(String fullname, String username)
+            {
+                this.fullname = fullname;
+                this.username = username;
+            }
+
+            public void LoadFromConfigNode(ConfigNode node)
+            {
+                this.fullname = node.GetValue("fullname");
+                this.username = node.GetValue("username");
+            }
+
+            public ConfigNode SaveToConfigNode()
+            {
+                ConfigNode node = new ConfigNode(NODE_NAME);
+
+                node.SetValue("fullname", this.fullname, true);
+                node.SetValue("username", this.username, true);
+
+                return node;
+            }
         }
     }
 }

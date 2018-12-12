@@ -19,7 +19,7 @@ namespace KerbalSNS
         public int kerbalCount { get; set; }
         public StoryType type { get; set; }
         public String text { get; set; }
-        public String reqdMilestone; // TODO
+        public String[] progressReqtArray { get; set; }
         public bool isRepeatable { get; set; }
 
         public virtual void LoadFromConfigNode(ConfigNode node)
@@ -36,6 +36,12 @@ namespace KerbalSNS
             }
 
             this.text = node.GetValue("text");
+
+            if (node.HasValue("progressReqt"))
+            {
+                this.progressReqtArray = node.GetValue("progressReqt").
+                    Split(new String[] { "," }, StringSplitOptions.None).Select(x => x.Trim()).ToArray();
+            }
         }
 
         public virtual ConfigNode SaveToConfigNode()
@@ -49,6 +55,14 @@ namespace KerbalSNS
 
             node.SetValue("text", this.text, true);
 
+            if (this.progressReqtArray != null)
+            {
+                node.SetValue("progressReqt", String.Join(",", this.progressReqtArray), true);
+            }
+            else
+            {
+                node.SetValue("progressReqt", "");
+            }
             return node;
         }
     }

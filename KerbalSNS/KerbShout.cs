@@ -10,7 +10,7 @@ namespace KerbalSNS
         public String postedId { get; set; }
         public String postedBy { get; set; }
         public double postedTime { get; set; }
-        public String postedShout { get; set; }
+        public String postedText { get; set; }
 
         public KerbShout() { }
 
@@ -33,7 +33,7 @@ namespace KerbalSNS
             {
                 this.postedTime = Double.Parse(node.GetValue("postedTime"));
             }
-            this.postedShout = node.GetValue("postedShout");
+            this.postedText = node.GetValue("postedText");
         }
 
         public override ConfigNode SaveToConfigNode()
@@ -43,7 +43,7 @@ namespace KerbalSNS
             node.SetValue("postedId", this.postedId, true);
             node.SetValue("postedBy", this.postedBy, true);
             node.SetValue("postedTime", this.postedTime, true);
-            node.SetValue("postedShout", this.postedShout, true);
+            node.SetValue("postedText", this.postedText, true);
 
             return node;
         }
