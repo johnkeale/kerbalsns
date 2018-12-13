@@ -574,9 +574,9 @@ namespace KerbalSNS
                                     postedBy = postedBy + " @KSC_" + makeLikeUsername(postedBy);
 
                                     // TODO check if already posted before so that usernames will be consistent
-                                }
-                                else
-                                {
+                                    }
+                                    else
+                                    {
                                     baseShout.poster = KerbBaseShout.ShoutPoster.KSC;
                                     postedBy = "KSC_Official @KSC_Official";
                                 }
@@ -926,18 +926,22 @@ namespace KerbalSNS
 
             List<KerbShout> shoutList = new List<KerbShout>();
 
-            for (int i = 0; i < count; i++)
+            if (filteredBaseShoutList.Count > 0)
             {
-                KerbBaseShout baseShout =
-                    filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
+                for (int i = 0; i < count; i++)
+                {
+                    KerbBaseShout baseShout =
+                        filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
 
-                String postedBy = buildShoutPostedBy(baseShout);
+                    String postedBy = buildShoutPostedBy(baseShout);
 
-                KerbShout shout = createShout(baseShout, postedBy); // TODO add maximum time? (e.g. don't insert shouts on the list)
-                shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
+                    KerbShout shout = createShout(baseShout, postedBy); // TODO add maximum time? (e.g. don't insert shouts on the list)
+                    shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
 
-                shoutList.Add(shout);
-                KerbalSNSScenario.Instance.RegisterShout(shout);
+                    shoutList.Add(shout);
+                    KerbalSNSScenario.Instance.RegisterShout(shout);
+                }
+
             }
 
             return shoutList;
@@ -1040,16 +1044,16 @@ namespace KerbalSNS
             {
                 postedBy = randomActiveCrewKerbalName();
                 postedBy = postedBy + " @KSC_" + makeLikeUsername(postedBy);
-            }
+                }
             if (baseShout.poster == KerbBaseShout.ShoutPoster.KSCEmployee)
-            {
+                {
                 postedBy = randomLayKerbalName();
                 postedBy = postedBy + " @KSC_" + makeLikeUsername(postedBy);
             }
             if (baseShout.poster == KerbBaseShout.ShoutPoster.KSC)
             {
                 postedBy = "KSC_Official @KSC_Official";
-            }
+                }
             if (baseShout.poster == KerbBaseShout.ShoutPoster.Specific)
             {
                 postedBy = baseShout.specificPoster;
@@ -1246,18 +1250,24 @@ namespace KerbalSNS
 
         private void saveLastBrowserDialogPosition()
         {
-            Vector3 position = this.browserDialog.RTrf.position;
-            this.lastBrowserPosition = 
-                new Vector2(position.x / Screen.width + 0.5f, position.y / Screen.height + 0.5f);
+            if (this.browserDialog != null)
+            {
+                Vector3 position = this.browserDialog.RTrf.position;
+                this.lastBrowserPosition =
+                    new Vector2(position.x / Screen.width + 0.5f, position.y / Screen.height + 0.5f);
+            }
         }
 
         // https://forum.kerbalspaceprogram.com/index.php?/topic/149324-popupdialog-and-the-dialoggui-classes/&do=findComment&comment=3213159
         private void addShoutTextInputLocking()
         {
-            TMP_InputField tmp_input = this.shoutTextInput.uiItem.GetComponent<TMP_InputField>();
+            if (this.shoutTextInput != null)
+            {
+                TMP_InputField tmp_input = this.shoutTextInput.uiItem.GetComponent<TMP_InputField>();
 
-            tmp_input.onSelect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputSelect));
-            tmp_input.onDeselect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputDeselect));
+                tmp_input.onSelect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputSelect));
+                tmp_input.onDeselect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputDeselect));
+            }
         }
 
         // https://forum.kerbalspaceprogram.com/index.php?/topic/151312-preventing-keystroke-fallthrough-on-text-field-usage-between-different-modsinputlockmanager/
