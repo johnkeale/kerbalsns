@@ -42,6 +42,12 @@ namespace KerbalSNS
                 this.progressReqtArray = node.GetValue("progressReqt").
                     Split(new String[] { "," }, StringSplitOptions.None).Select(x => x.Trim()).ToArray();
             }
+
+            this.isRepeatable = true;
+            if (node.HasValue("isRepeatable"))
+            {
+                this.isRepeatable = "false".Equals(node.GetValue("isRepeatable"));
+            }
         }
 
         public virtual ConfigNode SaveToConfigNode()
@@ -51,7 +57,10 @@ namespace KerbalSNS
             node.SetValue("name", this.name, true);
             node.SetValue("kerbalCount", this.kerbalCount, true);
 
-            // TODO type
+            if (this.type == StoryType.Unknown)
+            {
+                node.SetValue("type", "unknown", true);
+            }
 
             node.SetValue("text", this.text, true);
 

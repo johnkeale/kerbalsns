@@ -20,6 +20,8 @@ namespace KerbalSNS
             this.kerbalCount = baseStory.kerbalCount;
             this.type = baseStory.type;
             this.text = baseStory.text;
+            this.progressReqtArray = baseStory.progressReqtArray;
+            this.isRepeatable = baseStory.isRepeatable;
         }
 
         public override void LoadFromConfigNode(ConfigNode node)

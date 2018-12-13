@@ -26,7 +26,7 @@ namespace KerbalSNS
         {
             Unknown = -1,
             Any,
-            Citizen, // LayKerbal
+            LayKerbal,
             VesselCrew,
             KSCEmployee,
             KSC,
@@ -37,18 +37,14 @@ namespace KerbalSNS
         {
             Unknown = -1,
             RepLevel,
-            LameJoke,
-            Crew,
+            Random,
             KSCNews,
-			NewsReponse,
-			Random,
-			Nonsense,
         }
 
         public String name { get; set; }
         public RepLevel repLevel { get; set; }
         public ShoutPoster poster { get; set; }
-		public String specificPoster { get; set; }
+		public Acct specificPoster { get; set; }
         public ShoutType type { get; set; }
         public String text { get; set; }
         public String[] progressReqtArray { get; set; }
@@ -90,9 +86,9 @@ namespace KerbalSNS
             {
                 this.poster = ShoutPoster.Any;
             }
-            if ("citizen".Equals(poster))
+            if ("layKerbal".Equals(poster))
             {
-                this.poster = ShoutPoster.Citizen;
+                this.poster = ShoutPoster.LayKerbal;
             }
             if ("vesselCrew".Equals(poster))
             {
@@ -109,11 +105,9 @@ namespace KerbalSNS
             if ("specific".Equals(poster))
             {
                 this.poster = ShoutPoster.Specific;
-            }
 
-            if (node.HasValue("specificPoster"))
-            {
-                this.specificPoster = node.GetValue("specificPoster");
+                this.specificPoster = new Acct();
+                this.specificPoster.LoadFromConfigNode(node.GetNode(Acct.NODE_NAME));
             }
 
             this.type = ShoutType.Unknown;
@@ -122,29 +116,13 @@ namespace KerbalSNS
             {
                 this.type = ShoutType.RepLevel;
             }
-            if ("lameJoke".Equals(type))
-            {
-                this.type = ShoutType.LameJoke;
-            }
-            if ("crew".Equals(type))
-            {
-                this.type = ShoutType.Crew;
-            }
-            if ("kscNews".Equals(type))
-            {
-                this.type = ShoutType.KSCNews;
-            }
-            if ("newsReponse".Equals(type))
-            {
-                this.type = ShoutType.NewsReponse;
-            }
             if ("random".Equals(type))
             {
                 this.type = ShoutType.Random;
             }
-            if ("nonsense".Equals(type))
+            if ("kscNews".Equals(type))
             {
-                this.type = ShoutType.Nonsense;
+                this.type = ShoutType.KSCNews;
             }
             
             this.text = node.GetValue("text");
@@ -153,6 +131,12 @@ namespace KerbalSNS
             {
                 this.progressReqtArray = node.GetValue("progressReqt").
                     Split(new String[] { "," }, StringSplitOptions.None).Select(x => x.Trim()).ToArray();
+            }
+
+            this.isRepeatable = true;
+            if (node.HasValue("isRepeatable"))
+            {
+                this.isRepeatable = "false".Equals(node.GetValue("isRepeatable"));
             }
         }
 
@@ -199,9 +183,9 @@ namespace KerbalSNS
             {
                 node.SetValue("poster", "any", true);
             }
-            if (this.poster == ShoutPoster.Citizen)
+            if (this.poster == ShoutPoster.LayKerbal)
             {
-                node.SetValue("poster", "citizen", true);
+                node.SetValue("poster", "layKerbal", true);
             }
             if (this.poster == ShoutPoster.VesselCrew)
             {
@@ -218,9 +202,9 @@ namespace KerbalSNS
             if (this.poster == ShoutPoster.Specific)
             {
                 node.SetValue("poster", "specific", true);
-            }
 
-            node.SetValue("specificPoster", this.specificPoster, true);
+                node.AddNode(this.specificPoster.SaveToConfigNode());
+            }
 
             if (this.type == ShoutType.Unknown)
             {
@@ -230,29 +214,13 @@ namespace KerbalSNS
             {
                 node.SetValue("type", "repLevel", true);
             }
-            if (this.type == ShoutType.LameJoke)
-            {
-                node.SetValue("type", "lameJoke", true);
-            }
-            if (this.type == ShoutType.Crew)
-            {
-                node.SetValue("type", "crew", true);
-            }
-            if (this.type == ShoutType.KSCNews)
-            {
-                node.SetValue("type", "kscNews", true);
-            }
-            if (this.type == ShoutType.NewsReponse)
-            {
-                node.SetValue("type", "newsReponse", true);
-            }
             if (this.type == ShoutType.Random)
             {
                 node.SetValue("type", "random", true);
             }
-            if (this.type == ShoutType.Nonsense)
+            if (this.type == ShoutType.KSCNews)
             {
-                node.SetValue("type", "nonsense", true);
+                node.SetValue("type", "kscNews", true);
             }
 
             node.SetValue("text", this.text, true);
@@ -266,6 +234,8 @@ namespace KerbalSNS
                 node.SetValue("progressReqt", "");
             }
 
+            node.SetValue("isRepeatable", this.isRepeatable ? "true" : "false");
+
             return node;
         }
 
@@ -273,19 +243,24 @@ namespace KerbalSNS
         {
             public const String NODE_NAME = "KERBSHOUTACCT";
 
+            public static Acct KSC_OFFICIAL = new KerbShout.Acct("kscOfficial", "KSC_Official", "@KSC_Official");
+
+            public String name { get; set; }
             public String fullname { get; set; }
             public String username { get; set; }
 
             public Acct() { }
 
-            public Acct(String fullname, String username)
+            public Acct(String name, String fullname, String username)
             {
+                this.name = name;
                 this.fullname = fullname;
                 this.username = username;
             }
 
             public void LoadFromConfigNode(ConfigNode node)
             {
+                this.name = node.GetValue("name");
                 this.fullname = node.GetValue("fullname");
                 this.username = node.GetValue("username");
             }
@@ -294,6 +269,7 @@ namespace KerbalSNS
             {
                 ConfigNode node = new ConfigNode(NODE_NAME);
 
+                node.SetValue("name", this.name, true);
                 node.SetValue("fullname", this.fullname, true);
                 node.SetValue("username", this.username, true);
 
