@@ -121,7 +121,7 @@ namespace KerbalSNS
             if (this.lastStoryPostedTime + minTimeBetweenStories < Planetarium.GetUniversalTime())
             {
                 this.lastStoryPostedTime = Planetarium.GetUniversalTime();
-				
+                
                 double postStoryChance = mizer.Next(100) + 1;
                 if (postStoryChance <= KerbalSNSSettings.StoryChance)
                 {
@@ -243,7 +243,7 @@ namespace KerbalSNS
                         false,
                         50,
                         delegate (String s) {
-							s = dummyUrl;
+                            s = dummyUrl;
                             return dummyUrl;
                         },
                         25
@@ -377,7 +377,7 @@ namespace KerbalSNS
 
             if (postedStoriesList.Count > 0) {
                 int numOfStories = 0;
-				foreach (KerbStory story in postedStoriesList)
+                foreach (KerbStory story in postedStoriesList)
                 {
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
                         TextAnchor.MiddleCenter,
@@ -389,15 +389,15 @@ namespace KerbalSNS
                         }
                     ));
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
-						TextAnchor.MiddleCenter,
-						new DialogGUIBase[] {
-							new DialogGUILabel(
+                        TextAnchor.MiddleCenter,
+                        new DialogGUIBase[] {
+                            new DialogGUILabel(
                                 "Random story on " + story.postedOnVessel
                                 + " " + getRelativeTime(story.postedTime),
                                 true,
                                 true)
-						}
-					));
+                        }
+                    ));
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
                         TextAnchor.MiddleCenter,
                         new DialogGUIBase[] {
@@ -409,11 +409,11 @@ namespace KerbalSNS
                     ));
                     // TODO maybe add some pictures?
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
-						TextAnchor.MiddleCenter,
-						new DialogGUIBase[] {
-							new DialogGUILabel(story.postedText, true, true)
-						}
-					));
+                        TextAnchor.MiddleCenter,
+                        new DialogGUIBase[] {
+                            new DialogGUILabel(story.postedText, true, true)
+                        }
+                    ));
 
                     if (numOfStories == (STORY_PER_PAGE * this.numOfStoryPages))
                     {
@@ -441,10 +441,10 @@ namespace KerbalSNS
                     {
                         numOfStories++;
                     }
-				}
+                }
 
 
-			}
+            }
             else
             {
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
@@ -457,13 +457,13 @@ namespace KerbalSNS
                     }
                 ));
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
-					TextAnchor.MiddleCenter,
-					new DialogGUIBase[] {
-						new DialogGUILabel("No stories yet.", 320, 25)
-					}
-				));
+                    TextAnchor.MiddleCenter,
+                    new DialogGUIBase[] {
+                        new DialogGUILabel("No stories yet.", 320, 25)
+                    }
+                ));
 
-			}
+            }
 
             return scrollElementsList;
         }
@@ -600,7 +600,7 @@ namespace KerbalSNS
                 }
             ));
             foreach (KerbShout shout in shoutList)
-			{
+            {
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
                     TextAnchor.MiddleCenter,
                     new DialogGUIBase[] {
@@ -612,8 +612,8 @@ namespace KerbalSNS
                 ));
 
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
-					TextAnchor.MiddleCenter,
-					new DialogGUIBase[] {
+                    TextAnchor.MiddleCenter,
+                    new DialogGUIBase[] {
                         // this is supposed to be a profile image
                         new DialogGUIVerticalLayout(
                             10,
@@ -650,7 +650,7 @@ namespace KerbalSNS
                             }
                         )
                     }
-				));
+                ));
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(
                     TextAnchor.MiddleCenter,
                     new DialogGUIBase[] {
@@ -773,12 +773,16 @@ namespace KerbalSNS
                 baseStoryList.Where(x => hasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
             KerbBaseStory baseStory = filteredBaseStoryList[mizer.Next(filteredBaseStoryList.Count)];
 
-            Vessel vessel = getViableVessel(baseStory);
-            if (vessel == null)
+            List<Vessel> vesselList =
+                FlightGlobals.Vessels.Where(x => isVesselViable(baseStory, x)).ToList();
+
+            if (vesselList.Count == 0)
             {
                 Debug.Log("No kerbals viable for this story");
                 return;
             }
+
+            Vessel vessel = vesselList[mizer.Next(vesselList.Count)];
 
             List<ProtoCrewMember> kerbalList = getViableKerbals(baseStory, vessel);
 
@@ -799,24 +803,27 @@ namespace KerbalSNS
             MessageSystem.Instance.AddMessage(message);
         }
 
-        private Vessel getViableVessel(KerbBaseStory story)
+        private bool isVesselViable(KerbBaseStory baseStory, Vessel vessel)
         {
-            List<Vessel> vesselList = 
-                FlightGlobals.Vessels.Where(
-                    x => (x.GetCrewCount() >= story.kerbalCount
-                        && (x.vesselType == VesselType.Base
-                            || x.vesselType == VesselType.Station))).ToList();
-            if (FlightGlobals.ActiveVessel != null)
+            if (FlightGlobals.ActiveVessel != null
+                && FlightGlobals.ActiveVessel.Equals(vessel))
             {
-                vesselList.Remove(FlightGlobals.ActiveVessel);
+                return false;
             }
 
-            if (vesselList.Count == 0)
-            {
-                return null;
-            }
+            bool isCrewEnough = vessel.GetCrewCount() >= baseStory.kerbalCount;
+            bool isVesselValid = 
+                (vessel.vesselType == VesselType.Base
+                    && (vessel.situation == Vessel.Situations.LANDED
+                        || vessel.situation == Vessel.Situations.SPLASHED)) 
+                || (vessel.vesselType == VesselType.Station
+                    && (vessel.situation == Vessel.Situations.ORBITING
+                        /*|| vessel.situation == Vessel.Situations.ESCAPING
+                        || vessel.situation == Vessel.Situations.FLYING*/));
+            bool isBodyValid = baseStory.bodyName == null 
+                || vessel.mainBody.name.Equals(baseStory.bodyName);
 
-            return vesselList[mizer.Next(vesselList.Count)];
+            return isCrewEnough && isVesselValid && isBodyValid;
         }
 
         private List<ProtoCrewMember> getViableKerbals(KerbBaseStory story, Vessel vessel)

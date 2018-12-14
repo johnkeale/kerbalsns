@@ -21,6 +21,7 @@ namespace KerbalSNS
         public String text { get; set; }
         public String[] progressReqtArray { get; set; }
         public bool isRepeatable { get; set; }
+        public String bodyName { get; set; }
 
         public virtual void LoadFromConfigNode(ConfigNode node)
         {
@@ -48,6 +49,11 @@ namespace KerbalSNS
             {
                 this.isRepeatable = "false".Equals(node.GetValue("isRepeatable"));
             }
+
+            if (node.HasValue("bodyName"))
+            {
+                this.bodyName = node.GetValue("bodyName");
+            }
         }
 
         public virtual ConfigNode SaveToConfigNode()
@@ -72,6 +78,9 @@ namespace KerbalSNS
             {
                 node.SetValue("progressReqt", "");
             }
+
+            node.SetValue("bodyName", this.bodyName, true);
+
             return node;
         }
     }
