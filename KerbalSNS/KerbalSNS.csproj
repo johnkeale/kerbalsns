@@ -51,8 +51,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="KerbalSNSUtils.cs" />
     <Compile Include="KerbShout.cs" />
+    <Compile Include="KerbShoutHelper.cs" />
     <Compile Include="KerbStory.cs" />
+    <Compile Include="KerbStoryHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="KerbBaseShout.cs" />
     <Compile Include="KerbBaseStory.cs" />

@@ -26,8 +26,6 @@ namespace KerbalSNS
         private System.Random mizer;
 
         private double lastStoryPostedTime = 0; // TODO rename
-        private List<KerbBaseStory> baseStoryList;
-        private List<KerbBaseShout> baseShoutList;
 
         private DialogGUITextInput shoutTextInput;
         private PopupDialog browserDialog;
@@ -67,30 +65,8 @@ namespace KerbalSNS
             mizer = new System.Random();
             this.lastStoryPostedTime = Planetarium.GetUniversalTime();
 
-            baseStoryList = new List<KerbBaseStory>();
-            baseShoutList = new List<KerbBaseShout>();
-
-            ConfigNode rootStoryNode = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/KerbalSNS/baseStoriesList.cfg");
-            ConfigNode storyListNode = rootStoryNode.GetNode(KerbBaseStory.NODE_NAME_PLURAL);
-
-            ConfigNode[] storyArray = storyListNode.GetNodes();
-            foreach (ConfigNode storyNode in storyArray)
-            {
-                KerbBaseStory story = new KerbBaseStory();
-                story.LoadFromConfigNode(storyNode);
-                baseStoryList.Add(story);
-            }
-
-            ConfigNode rootShoutNode = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/KerbalSNS/baseShoutsList.cfg");
-            ConfigNode shoutListNode = rootShoutNode.GetNode(KerbBaseShout.NODE_NAME_PLURAL);
-
-            ConfigNode[] shoutArray = shoutListNode.GetNodes();
-            foreach (ConfigNode shoutNode in shoutArray)
-            {
-                KerbBaseShout shout = new KerbBaseShout();
-                shout.LoadFromConfigNode(shoutNode);
-                baseShoutList.Add(shout);
-            }
+            KerbStoryHelper.Instance.LoadBaseStoryList();
+            KerbShoutHelper.Instance.LoadBaseShoutList();
         }
 
         public void OnDestroy()
@@ -125,7 +101,7 @@ namespace KerbalSNS
                 double postStoryChance = mizer.Next(100) + 1;
                 if (postStoryChance <= KerbalSNSSettings.StoryChance)
                 {
-                    postStory();
+                    KerbStoryHelper.Instance.PostStory();
                 }
             }
         }
@@ -248,7 +224,7 @@ namespace KerbalSNS
                         },
                         25
                     ),*/
-            new DialogGUIButton(
+                    new DialogGUIButton(
                         "Go",
                         delegate {
 
@@ -372,8 +348,7 @@ namespace KerbalSNS
             );
             scrollElementsList.Add(navBar);
 
-            List<KerbStory> postedStoriesList = KerbalSNSScenario.Instance.GetStoryList; // TODO fix bad name
-            postedStoriesList = postedStoriesList.OrderByDescending(s => s.postedTime).ToList();
+            List<KerbStory> postedStoriesList = KerbStoryHelper.Instance.GetPostedStories();
 
             if (postedStoriesList.Count > 0) {
                 int numOfStories = 0;
@@ -393,7 +368,7 @@ namespace KerbalSNS
                         new DialogGUIBase[] {
                             new DialogGUILabel(
                                 "Random story on " + story.postedOnVessel
-                                + " " + getRelativeTime(story.postedTime),
+                                + " " + KerbalSNSUtils.GetRelativeTime(story.postedTime),
                                 true,
                                 true)
                         }
@@ -502,9 +477,7 @@ namespace KerbalSNS
             );
             scrollElementsList.Add(navBar);
 
-            List<KerbShout> shoutList = KerbalSNSScenario.Instance.GetShoutList; // TODO fix bad name
-            shoutList = updateShoutsIfNeeded(shoutList);
-            shoutList = shoutList.OrderByDescending(s => s.postedTime).ToList();
+            List<KerbShout> shoutList = KerbShoutHelper.Instance.GetPostedShouts();
 
             scrollElementsList.Add(new DialogGUIHorizontalLayout(
                 TextAnchor.MiddleCenter,
@@ -556,42 +529,8 @@ namespace KerbalSNS
                     new DialogGUIButton(
                         "Shout!",
                         delegate {
-                            KerbBaseShout baseShout = new KerbBaseShout();
-
-                            baseShout.name = "TODO";
-                            baseShout.repLevel = KerbBaseShout.RepLevel.Any;
-                            baseShout.type = KerbBaseShout.ShoutType.Random;
-                            baseShout.text = enteredShout;
-
-                            baseShout.poster = KerbBaseShout.ShoutPoster.KSC;
-                            KerbShout.Acct postedBy = KerbShout.Acct.KSC_OFFICIAL;
-
-                            if (FlightGlobals.ActiveVessel != null)
-                            {
-                                String fullname = randomVesselCrewKerbalName(FlightGlobals.ActiveVessel);
-                                if (fullname != null)
-                                {
-                                    baseShout.poster = KerbBaseShout.ShoutPoster.VesselCrew;
-
-                                    KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(postedBy.fullname);
-                                    if (shoutAcct != null)
-                                    {
-                                        postedBy = shoutAcct;
-                                    }
-                                    else
-                                    {
-                                        postedBy.name = "TODO";
-                                        postedBy.fullname = fullname;
-                                        postedBy.username = "@KSC_" + makeLikeUsername(postedBy.fullname);
-
-                                        KerbalSNSScenario.Instance.SaveShoutAcct(postedBy);
-                                    }
-                                }
-                            }
-
-                            KerbShout shout = createShout(baseShout, postedBy);
-                            KerbalSNSScenario.Instance.RegisterShout(shout);
-
+                            KerbShoutHelper.Instance.GenerateShout(enteredShout);
+                            
                             saveLastBrowserDialogPosition();
                             spawnBrowserDialog(BrowserType.Shouts);
                         },
@@ -643,7 +582,7 @@ namespace KerbalSNS
                                 new DialogGUILabel(
                                     shout.postedBy.fullname 
                                     + " <color=#CBF856><u>" + shout.postedBy.username + "</u></color>"
-                                    + " " + getRelativeTime(shout.postedTime),
+                                    + " " + KerbalSNSUtils.GetRelativeTime(shout.postedTime),
                                     true,
                                     true),
                                 new DialogGUILabel(shout.postedText, true, true)
@@ -766,516 +705,6 @@ namespace KerbalSNS
         #endregion
 
         #region private methods
-        
-        private void postStory()
-        {
-            List<KerbBaseStory> filteredBaseStoryList = 
-                baseStoryList.Where(x => hasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
-            KerbBaseStory baseStory = filteredBaseStoryList[mizer.Next(filteredBaseStoryList.Count)];
-
-            List<Vessel> vesselList =
-                FlightGlobals.Vessels.Where(x => isVesselViable(baseStory, x)).ToList();
-
-            if (vesselList.Count == 0)
-            {
-                Debug.Log("No kerbals viable for this story");
-                return;
-            }
-
-            Vessel vessel = vesselList[mizer.Next(vesselList.Count)];
-
-            List<ProtoCrewMember> kerbalList = getViableKerbals(baseStory, vessel);
-
-            KerbStory story = createStory(baseStory, vessel, kerbalList);
-            KerbalSNSScenario.Instance.RegisterStory(story);
-
-            Debug.Log("Random story has happened.");
-
-            ScreenMessages.PostScreenMessage("A random story happened at " + vessel.GetDisplayName() + "!");
-
-            MessageSystem.Message message = new MessageSystem.Message(
-                "A random story happened at " + vessel.GetDisplayName() + "!",
-                story.postedText,
-                MessageSystemButton.MessageButtonColor.BLUE,
-                MessageSystemButton.ButtonIcons.MESSAGE
-            );
-
-            MessageSystem.Instance.AddMessage(message);
-        }
-
-        private bool isVesselViable(KerbBaseStory baseStory, Vessel vessel)
-        {
-            if (FlightGlobals.ActiveVessel != null
-                && FlightGlobals.ActiveVessel.Equals(vessel))
-            {
-                return false;
-            }
-
-            bool isCrewEnough = vessel.GetCrewCount() >= baseStory.kerbalCount;
-            bool isVesselValid = 
-                (vessel.vesselType == VesselType.Base
-                    && (vessel.situation == Vessel.Situations.LANDED
-                        || vessel.situation == Vessel.Situations.SPLASHED)) 
-                || (vessel.vesselType == VesselType.Station
-                    && (vessel.situation == Vessel.Situations.ORBITING
-                        /*|| vessel.situation == Vessel.Situations.ESCAPING
-                        || vessel.situation == Vessel.Situations.FLYING*/));
-            bool isBodyValid = baseStory.bodyName == null 
-                || vessel.mainBody.name.Equals(baseStory.bodyName);
-
-            return isCrewEnough && isVesselValid && isBodyValid;
-        }
-
-        private List<ProtoCrewMember> getViableKerbals(KerbBaseStory story, Vessel vessel)
-        {
-            List<ProtoCrewMember> vesselCrewList = vessel.GetVesselCrew();
-
-            List<ProtoCrewMember> viableKerbalList = new List<ProtoCrewMember>();
-            for (int i = 0; i < story.kerbalCount; i++)
-            {
-                ProtoCrewMember kerbal = vesselCrewList[mizer.Next(vesselCrewList.Count)];
-                while (viableKerbalList.Contains(kerbal)) // TODO find a better way
-                {
-                    kerbal = vesselCrewList[mizer.Next(vesselCrewList.Count)];
-                }
-
-                viableKerbalList.Add(kerbal);
-            }
-
-            return viableKerbalList;
-        }
-
-        private KerbStory createStory(KerbBaseStory baseStory, Vessel vessel, List<ProtoCrewMember> kerbalList)
-        {
-            KerbStory story = new KerbStory(baseStory);
-
-            story.postedId = "TODO";
-
-            story.postedOnVessel = vessel.GetDisplayName();
-            story.postedTime = Planetarium.GetUniversalTime();
-
-            story.postedText = baseStory.text;
-
-            String vesselType = (vessel.vesselType == VesselType.Base) ?
-                "base" : "station";
-            story.postedText = story.postedText.Replace("%v", vesselType);
-
-            int kerbalIndex = 1;
-            foreach (ProtoCrewMember kerbal in kerbalList)
-            {
-                story.postedText = 
-                    story.postedText.Replace("%k" + kerbalIndex, CrewGenerator.RemoveLastName(kerbal.name));
-                kerbalIndex++;
-            }
-
-            return story;
-        }
-        
-        private List<KerbShout> updateShoutsIfNeeded(List<KerbShout> shoutList)
-        {
-            double now = Planetarium.GetUniversalTime();
-            List<KerbShout> updatedShoutList = 
-                purgeOldShouts(shoutList, now, KSPUtil.dateTimeFormatter.Hour);
-
-            // ProgressTracking.Instance.FindNode("FirstLaunch").IsComplete
-            
-            if (updatedShoutList.Count == 0 || updatedShoutList.Count < KerbalSNSSettings.NumOfShouts)
-            {
-                int neededShoutCount = KerbalSNSSettings.NumOfShouts - updatedShoutList.Count; // FIXME this creates repLevel shouts based only on neededShouts, so the percentage will be off
-                int repLevelShoutCount = (int)Math.Ceiling(neededShoutCount * (KerbalSNSSettings.RepLevelShoutPercentage / 100.0f));
-
-                int outlierRepLevelShoutCount = 0;
-                if (repLevelShoutCount > 5)
-                {
-                    outlierRepLevelShoutCount = mizer.Next(2) + 1;
-                    repLevelShoutCount -= outlierRepLevelShoutCount;
-                }
-                
-                List<KerbShout> repLevelShoutList = 
-                    generateShouts(
-                        x => (
-                            x.type == KerbBaseShout.ShoutType.RepLevel
-                            && x.repLevel == getCurrentRepLevel()
-                        ), 
-                        repLevelShoutCount, 
-                        now);
-                foreach (KerbShout shout in repLevelShoutList)
-                {
-                    updatedShoutList.Add(shout);
-                }
-
-                List<KerbShout> outlierRepLevelShoutList =
-                    generateShouts(
-                        x => (
-                            x.type == KerbBaseShout.ShoutType.RepLevel
-                            && x.repLevel != getCurrentRepLevel()
-                        ),
-                        outlierRepLevelShoutCount,
-                        now);
-                foreach (KerbShout shout in outlierRepLevelShoutList)
-                {
-                    updatedShoutList.Add(shout);
-                }
-
-                List<KerbShout> otherShoutList =
-                    generateShouts(
-                        x => (
-                            x.type != KerbBaseShout.ShoutType.RepLevel
-                        ), 
-                        neededShoutCount - repLevelShoutCount, 
-                        now);
-                foreach (KerbShout shout in otherShoutList)
-                {
-                    updatedShoutList.Add(shout);
-                }
-            }
-
-            return updatedShoutList;
-        }
-
-        private List<KerbShout> generateShouts(Func<KerbBaseShout, bool> predicate, int count, double baseTime)
-        {
-            List<KerbBaseShout> filteredBaseShoutList = baseShoutList.Where(predicate).ToList();
-            filteredBaseShoutList = 
-                filteredBaseShoutList.Where(x => hasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
-
-            List<KerbShout> shoutList = new List<KerbShout>();
-
-            if (filteredBaseShoutList.Count > 0)
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    KerbBaseShout baseShout =
-                        filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
-
-                    KerbShout.Acct postedBy = buildShoutPostedBy(baseShout);
-
-                    KerbShout shout = createShout(baseShout, postedBy); // TODO add maximum time? (e.g. don't insert shouts on the list)
-                    shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
-
-                    shoutList.Add(shout);
-                    KerbalSNSScenario.Instance.RegisterShout(shout);
-                }
-
-            }
-
-            return shoutList;
-        }
-
-        private bool hasAchievedAllProgressReqt(String[] progressReqtArray)
-        {
-            if (progressReqtArray == null)
-            {
-                return true; // no requirements, so technically, has achieved them all
-            }
-            else
-            {
-                bool hasAchievedProgressReqt = true;
-                foreach (String progressReqt in progressReqtArray)
-                {
-                    String progressName = progressReqt;
-                    bool isNegated = progressName.StartsWith("!");
-                    if (isNegated)
-                    {
-                        progressName = progressName.Substring(1, progressName.Length - 1);
-                    }
-
-                    ProgressNode progressNode = ProgressTracking.Instance.FindNode(progressName);
-                    if (progressNode == null)
-                    {
-                        CelestialBody body = FlightGlobals.Bodies.FirstOrDefault(b => progressName.StartsWith(b.name));
-                        if (body != null)
-                        {
-                            progressName = progressName.Substring(body.name.Length, progressName.Length - body.name.Length);
-                            progressNode = ProgressTracking.Instance.FindNode(body.name, progressName);
-                        }
-                    }
-
-                    if (progressNode != null)
-                    {
-                        hasAchievedProgressReqt = hasAchievedProgressReqt && (isNegated ? !progressNode.IsComplete : progressNode.IsComplete);
-                    }
-                    else
-                    {
-                        hasAchievedProgressReqt = hasAchievedProgressReqt && isNegated;
-                    }
-                }
-
-                return hasAchievedProgressReqt;
-            }
-        }
-
-        private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
-        {
-            List<KerbShout> freshShoutsList = new List<KerbShout>();
-
-            foreach (KerbShout shout in shoutList)
-            {
-                // shout still new
-                if (baseTime - shout.postedTime <= deltaTime)
-                {
-                    freshShoutsList.Add(shout);
-                }
-                else
-                {
-                    KerbalSNSScenario.Instance.DeleteShout(shout);
-                }
-            }
-
-            return freshShoutsList;
-        }
-
-        private KerbShout createShout(KerbBaseShout baseShout, KerbShout.Acct postedBy)
-        {
-            KerbShout shout = new KerbShout(baseShout);
-
-            shout.postedId = "TODO";
-
-            shout.postedBy = postedBy;
-            shout.postedTime = Planetarium.GetUniversalTime();
-
-            shout.postedText = 
-                Regex.Replace(baseShout.text, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
-            shout.postedText =
-                Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
-
-            // TODO add some formatting if needed
-            
-            return shout;
-        }
-
-        private KerbShout.Acct buildShoutPostedBy(KerbBaseShout baseShout)
-        {
-            if (baseShout.poster == KerbBaseShout.ShoutPoster.Specific)
-            {
-                KerbalSNSScenario.Instance.SaveShoutAcct(baseShout.specificPoster);
-                return baseShout.specificPoster;
-            }
-
-            KerbShout.Acct postedBy = new KerbShout.Acct();
-            postedBy.name = "TODO";
-
-            if (baseShout.poster == KerbBaseShout.ShoutPoster.Any
-                || baseShout.poster == KerbBaseShout.ShoutPoster.LayKerbal
-                || baseShout.poster == KerbBaseShout.ShoutPoster.Unknown)
-            {
-                postedBy.fullname = randomLayKerbalName();
-                postedBy.username = "@" + makeLikeUsername(postedBy.fullname);
-            }
-            else if (baseShout.poster == KerbBaseShout.ShoutPoster.VesselCrew)
-            {
-                postedBy.fullname = randomActiveCrewKerbalName();
-
-                KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(postedBy.fullname);
-                if (shoutAcct != null)
-                {
-                    postedBy = shoutAcct;
-                }
-                else
-                {
-                    postedBy.username = "@KSC_" + makeLikeUsername(postedBy.fullname);
-                }
-                KerbalSNSScenario.Instance.SaveShoutAcct(postedBy);
-            }
-            else if (baseShout.poster == KerbBaseShout.ShoutPoster.KSCEmployee)
-            {
-                postedBy.fullname = randomLayKerbalName();
-
-                KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(postedBy.fullname);
-                if (shoutAcct != null)
-                {
-                    postedBy = shoutAcct;
-                }
-                else
-                {
-                    postedBy.username = "@KSC_" + makeLikeUsername(postedBy.fullname);
-                }
-                KerbalSNSScenario.Instance.SaveShoutAcct(postedBy);
-            }
-            else if (baseShout.poster == KerbBaseShout.ShoutPoster.KSC)
-            {
-                postedBy = KerbShout.Acct.KSC_OFFICIAL;
-            }
-
-            return postedBy;
-        }
-
-        private String makeLikeUsername(String name)
-        {
-            String username = name;
-
-            int r = mizer.Next(4);
-            if (r == 0)
-            {
-                username = Regex.Replace(username, " ", "", RegexOptions.IgnoreCase);
-            }
-            else if (r == 1)
-            {
-                username = Regex.Replace(username, " ", "_", RegexOptions.IgnoreCase);
-            }
-            else
-            {
-                username = CrewGenerator.RemoveLastName(name);
-            }
-            
-            r = mizer.Next(13);
-            if (r < 3)
-            {
-                username = Regex.Replace(username, "o", "0", RegexOptions.IgnoreCase);
-            }
-            r = mizer.Next(13);
-            if (r < 3)
-            {
-                username = Regex.Replace(username, "i", "1", RegexOptions.IgnoreCase);
-            }
-            r = mizer.Next(13);
-            if (r < 3)
-            {
-                username = Regex.Replace(username, "l", "2", RegexOptions.IgnoreCase);
-            }
-            r = mizer.Next(13);
-            if (r < 3)
-            {
-                username = Regex.Replace(username, "e", "3", RegexOptions.IgnoreCase);
-            }
-
-            r = mizer.Next(13);
-            if (r < 1)
-            {
-                username = username + mizer.Next(1000);
-            }
-
-            return username;
-        }
-
-        private String randomKerbalName()
-        {
-            return CrewGenerator.GetRandomName((ProtoCrewMember.Gender) mizer.Next(2), mizer);
-        }
-
-        private String randomLayKerbalName()
-        {
-            String randomName = randomKerbalName();
-            while (HighLogic.CurrentGame.CrewRoster.Exists(randomName))
-            {
-                randomName = randomKerbalName();
-            }
-            return randomName;
-        }
-
-        private String randomCrewKerbalName()
-        {
-            // TODO add sanity checks e.g. all crew is kia or missing :(
-            ProtoCrewMember kerbal = 
-                HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
-            return kerbal.name;
-        }
-
-        private String randomActiveCrewKerbalName()
-        {
-            // TODO add sanity checks e.g. all crew is kia or missing :(
-            ProtoCrewMember kerbal =
-                HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
-            while (kerbal.rosterStatus != ProtoCrewMember.RosterStatus.Assigned)
-            {
-                kerbal =
-                    HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
-            }
-            return kerbal.name;
-        }
-
-        private String randomVesselCrewKerbalName(Vessel vessel)
-        {
-            List<ProtoCrewMember> vesselCrewList = vessel.GetVesselCrew();
-            if (vesselCrewList.Count == 0)
-            {
-                return null;
-            }
-
-            ProtoCrewMember kerbal = vesselCrewList[mizer.Next(vesselCrewList.Count)];
-            return kerbal.name;
-        }
-
-        private String randomApplicantKerbalName()
-        {
-            // TODO add sanity checks e.g. all crew is kia or missing :(
-            ProtoCrewMember kerbal =
-                HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
-            while (kerbal.rosterStatus != ProtoCrewMember.RosterStatus.Available)
-            {
-                kerbal =
-                    HighLogic.CurrentGame.CrewRoster[mizer.Next(HighLogic.CurrentGame.CrewRoster.Count)];
-            }
-            return kerbal.name;
-        }
-
-        private KerbShout.RepLevel getCurrentRepLevel()
-        {
-            if (-1000f <= Reputation.CurrentRep && Reputation.CurrentRep < -600f)
-            {
-                return KerbBaseShout.RepLevel.VeryLow;
-            }
-            else if (-600f <= Reputation.CurrentRep && Reputation.CurrentRep < -200f)
-            {
-                return KerbBaseShout.RepLevel.Low;
-            }
-            else if (-200f <= Reputation.CurrentRep && Reputation.CurrentRep < 200f)
-            {
-                return KerbBaseShout.RepLevel.Medium;
-            }
-            else if (200f <= Reputation.CurrentRep && Reputation.CurrentRep < 600f)
-            {
-                return KerbBaseShout.RepLevel.High;
-            }
-            else if (600f <= Reputation.CurrentRep && Reputation.CurrentRep < 1000f)
-            {
-                return KerbBaseShout.RepLevel.VeryHigh;
-            }
-            return KerbBaseShout.RepLevel.Unknown;
-        }
-
-        private String getRelativeTime(double time)
-        {
-            double now = Planetarium.GetUniversalTime();
-            double delta =  now - time;
-
-            // TODO test on other planets, maybe the year/day/hour/minute might be different
-            int years = (((int)delta) / KSPUtil.dateTimeFormatter.Year) + 1;
-
-            int remainder = ((int)delta) % KSPUtil.dateTimeFormatter.Year;
-            int days = (remainder / KSPUtil.dateTimeFormatter.Day) + 1;
-
-            remainder = ((int)delta) % KSPUtil.dateTimeFormatter.Day;
-            int hours = (remainder / KSPUtil.dateTimeFormatter.Hour) + 1;
-
-            remainder = ((int)delta) % KSPUtil.dateTimeFormatter.Hour;
-            int minutes = remainder / KSPUtil.dateTimeFormatter.Minute;
-
-            int seconds = remainder % KSPUtil.dateTimeFormatter.Minute;
-
-            if (delta < 1 * KSPUtil.dateTimeFormatter.Minute)
-                return seconds <= 1 ? "one second ago" : seconds + " seconds ago";
-
-            if (delta < 2 * KSPUtil.dateTimeFormatter.Minute)
-                return "a minute ago";
-
-            if (delta < 45 * KSPUtil.dateTimeFormatter.Minute)
-                return minutes + " minutes ago";
-
-            if (delta < 90 * KSPUtil.dateTimeFormatter.Minute)
-                return "an hour ago";
-
-            if (delta < 6 * KSPUtil.dateTimeFormatter.Hour)
-                return hours + " hours ago";
-
-            if (delta < 12 * KSPUtil.dateTimeFormatter.Hour)
-                return "yesterday";
-
-            if (delta < 424 * KSPUtil.dateTimeFormatter.Day)
-                return days + " days ago";
-
-            return years <= 1 ? "one year ago" : years + " years ago";
-        }
 
         private void saveLastBrowserDialogPosition()
         {
