@@ -55,14 +55,14 @@ namespace KerbalSNS
             return shoutList;
         }
 
-        public void GenerateShout(String enteredShout)
+        public void GenerateShout(String text)
         {
             KerbBaseShout baseShout = new KerbBaseShout();
 
             baseShout.name = "TODO";
             baseShout.repLevel = KerbBaseShout.RepLevel.Any;
             baseShout.type = KerbBaseShout.ShoutType.Random;
-            baseShout.text = enteredShout;
+            baseShout.text = text;
 
             baseShout.poster = KerbBaseShout.ShoutPoster.KSC;
             KerbShout.Acct postedBy = KerbShout.Acct.KSC_OFFICIAL;
@@ -99,8 +99,6 @@ namespace KerbalSNS
             double now = Planetarium.GetUniversalTime();
             List<KerbShout> updatedShoutList =
                 purgeOldShouts(shoutList, now, KSPUtil.dateTimeFormatter.Hour);
-
-            // ProgressTracking.Instance.FindNode("FirstLaunch").IsComplete
 
             if (updatedShoutList.Count == 0 || updatedShoutList.Count < KerbalSNSSettings.NumOfShouts)
             {

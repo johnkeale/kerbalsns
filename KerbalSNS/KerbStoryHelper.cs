@@ -50,12 +50,12 @@ namespace KerbalSNS
 
         public List<KerbStory> GetPostedStories()
         {
-            List<KerbStory> postedStoriesList = KerbalSNSScenario.Instance.GetStoryList; // TODO fix bad name
-            postedStoriesList = postedStoriesList.OrderByDescending(s => s.postedTime).ToList();
-            return postedStoriesList;
+            List<KerbStory> storyList = KerbalSNSScenario.Instance.GetStoryList; // TODO fix bad name
+            storyList = storyList.OrderByDescending(s => s.postedTime).ToList();
+            return storyList;
         }
 
-        public void PostStory()
+        public KerbStory GenerateRandomStory()
         {
             List<KerbBaseStory> filteredBaseStoryList =
                 baseStoryList.Where(x => KerbalSNSUtils.HasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
@@ -67,7 +67,7 @@ namespace KerbalSNS
             if (vesselList.Count == 0)
             {
                 Debug.Log("No kerbals viable for this story");
-                return;
+                return null;
             }
 
             Vessel vessel = vesselList[mizer.Next(vesselList.Count)];
@@ -77,18 +77,7 @@ namespace KerbalSNS
             KerbStory story = createStory(baseStory, vessel, kerbalList);
             KerbalSNSScenario.Instance.RegisterStory(story);
 
-            Debug.Log("Random story has happened.");
-
-            ScreenMessages.PostScreenMessage("A random story happened at " + vessel.GetDisplayName() + "!");
-
-            MessageSystem.Message message = new MessageSystem.Message(
-                "A random story happened at " + vessel.GetDisplayName() + "!",
-                story.postedText,
-                MessageSystemButton.MessageButtonColor.BLUE,
-                MessageSystemButton.ButtonIcons.MESSAGE
-            );
-
-            MessageSystem.Instance.AddMessage(message);
+            return story;
         }
 
         private bool isVesselViable(KerbBaseStory baseStory, Vessel vessel)

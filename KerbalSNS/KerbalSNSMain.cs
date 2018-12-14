@@ -101,7 +101,20 @@ namespace KerbalSNS
                 double postStoryChance = mizer.Next(100) + 1;
                 if (postStoryChance <= KerbalSNSSettings.StoryChance)
                 {
-                    KerbStoryHelper.Instance.PostStory();
+                    KerbStory story = KerbStoryHelper.Instance.GenerateRandomStory();
+
+		            Debug.Log("Random story has happened.");
+		
+                    ScreenMessages.PostScreenMessage("A random story happened at " + story.postedOnVessel + "!");
+		
+		            MessageSystem.Message message = new MessageSystem.Message(
+                        "A random story happened at " + story.postedOnVessel + "!",
+		                story.postedText,
+		                MessageSystemButton.MessageButtonColor.BLUE,
+		                MessageSystemButton.ButtonIcons.MESSAGE
+		            );
+		
+		            MessageSystem.Instance.AddMessage(message);
                 }
             }
         }
@@ -348,11 +361,11 @@ namespace KerbalSNS
             );
             scrollElementsList.Add(navBar);
 
-            List<KerbStory> postedStoriesList = KerbStoryHelper.Instance.GetPostedStories();
+            List<KerbStory> storyList = KerbStoryHelper.Instance.GetPostedStories();
 
-            if (postedStoriesList.Count > 0) {
+            if (storyList.Count > 0) {
                 int numOfStories = 0;
-                foreach (KerbStory story in postedStoriesList)
+                foreach (KerbStory story in storyList)
                 {
                     scrollElementsList.Add(new DialogGUIHorizontalLayout(
                         TextAnchor.MiddleCenter,
@@ -477,8 +490,6 @@ namespace KerbalSNS
             );
             scrollElementsList.Add(navBar);
 
-            List<KerbShout> shoutList = KerbShoutHelper.Instance.GetPostedShouts();
-
             scrollElementsList.Add(new DialogGUIHorizontalLayout(
                 TextAnchor.MiddleCenter,
                 new DialogGUIBase[] {
@@ -538,6 +549,9 @@ namespace KerbalSNS
                     ),
                 }
             ));
+
+            List<KerbShout> shoutList = KerbShoutHelper.Instance.GetPostedShouts();
+
             foreach (KerbShout shout in shoutList)
             {
                 scrollElementsList.Add(new DialogGUIHorizontalLayout(

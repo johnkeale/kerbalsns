@@ -84,7 +84,6 @@ namespace KerbalSNS
                 return settings.repLevelShoutPercentage;
             }
         }
-
         #endregion
 
         #region overriden methods
