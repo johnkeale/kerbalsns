@@ -42,10 +42,7 @@ namespace KerbalSNS
                 this.postedBy.LoadFromConfigNode(node.GetNodes(Acct.NODE_NAME)[1]);
             }
 
-            if (node.HasValue("postedTime"))
-            {
-                this.postedTime = Double.Parse(node.GetValue("postedTime"));
-            }
+            this.postedTime = Double.Parse(node.GetValue("postedTime"));
             this.postedText = node.GetValue("postedText");
         }
 

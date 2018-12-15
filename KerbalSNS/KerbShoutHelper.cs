@@ -234,8 +234,7 @@ namespace KerbalSNS
             postedBy.name = "TODO";
 
             if (baseShout.poster == KerbBaseShout.ShoutPoster.Any
-                || baseShout.poster == KerbBaseShout.ShoutPoster.LayKerbal
-                || baseShout.poster == KerbBaseShout.ShoutPoster.Unknown)
+                || baseShout.poster == KerbBaseShout.ShoutPoster.LayKerbal)
             {
                 postedBy.fullname = KerbalSNSUtils.RandomLayKerbalName();
                 postedBy.username = "@" + makeLikeUsername(postedBy.fullname);
@@ -348,7 +347,7 @@ namespace KerbalSNS
             {
                 return KerbBaseShout.RepLevel.VeryHigh;
             }
-            return KerbBaseShout.RepLevel.Unknown;
+            return KerbBaseShout.RepLevel.Any;
         }
 
         public void RegenerateShouts()

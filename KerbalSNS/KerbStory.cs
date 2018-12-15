@@ -31,10 +31,7 @@ namespace KerbalSNS
 
             this.postedId = node.GetValue("postedId");
             this.postedOnVessel = node.GetValue("postedOnVessel");
-            if (node.HasValue("postedTime"))
-            {
-                this.postedTime = Double.Parse(node.GetValue("postedTime"));
-            }
+            this.postedTime = Double.Parse(node.GetValue("postedTime"));
             this.postedText = node.GetValue("postedText");
         }
 

@@ -13,7 +13,6 @@ namespace KerbalSNS
         public enum RepLevel
         {
             // TODO research reputation values based on the bar
-            Unknown = -1,
             Any,
             VeryLow,
             Low,
@@ -24,27 +23,25 @@ namespace KerbalSNS
 
         public enum ShoutPoster
         {
-            Unknown = -1,
             Any,
             LayKerbal,
             VesselCrew,
-            KSCEmployee,
+            KSCEmployee, // FIXME is this really needed??
             KSC,
             Specific,
         }
 
         public enum ShoutType
         {
-            Unknown = -1,
-            RepLevel,
             Random,
+            RepLevel,
             KSCNews,
         }
 
         public String name { get; set; }
         public RepLevel repLevel { get; set; }
         public ShoutPoster poster { get; set; }
-		public Acct specificPoster { get; set; }
+        public Acct specificPoster { get; set; }
         public ShoutType type { get; set; }
         public String text { get; set; }
         public String[] progressReqtArray { get; set; }
@@ -52,81 +49,84 @@ namespace KerbalSNS
 
         public virtual void LoadFromConfigNode(ConfigNode node)
         {
-            this.name = node.GetValue("name");
-
-            this.repLevel = RepLevel.Unknown;
-            String repLevel = node.GetValue("repLevel");
-            if ("any".Equals(repLevel))
+            this.name = "shout" + Guid.NewGuid();
+            if (node.HasValue("name"))
             {
-                this.repLevel = RepLevel.Any;
-            }
-            if ("veryLow".Equals(repLevel))
-            {
-                this.repLevel = RepLevel.VeryLow;
-            }
-            if ("low".Equals(repLevel))
-            {
-                this.repLevel = RepLevel.Low;
-            }
-            if ("medium".Equals(repLevel))
-            {
-                this.repLevel = RepLevel.Medium;
-            }
-            if ("high".Equals(repLevel))
-            {
-                this.repLevel = RepLevel.High;
-            }
-            if ("veryHigh".Equals(repLevel))
-            {
-                this.repLevel = RepLevel.VeryHigh;
+                this.name = node.GetValue("name");
             }
 
+            this.repLevel = RepLevel.Any;
+            if (node.HasValue("repLevel"))
+            {
+	            String repLevel = node.GetValue("repLevel");
+	            if ("veryLow".Equals(repLevel))
+	            {
+	                this.repLevel = RepLevel.VeryLow;
+	            }
+                else if ("low".Equals(repLevel))
+	            {
+	                this.repLevel = RepLevel.Low;
+	            }
+                else if ("medium".Equals(repLevel))
+	            {
+	                this.repLevel = RepLevel.Medium;
+	            }
+                else if ("high".Equals(repLevel))
+	            {
+	                this.repLevel = RepLevel.High;
+	            }
+                else if ("veryHigh".Equals(repLevel))
+	            {
+	                this.repLevel = RepLevel.VeryHigh;
+	            }
+            }
+
+            // required
+            this.poster = ShoutPoster.Any;
             String poster = node.GetValue("poster");
-            if ("any".Equals(poster))
-            {
-                this.poster = ShoutPoster.Any;
-            }
             if ("layKerbal".Equals(poster))
             {
                 this.poster = ShoutPoster.LayKerbal;
             }
-            if ("vesselCrew".Equals(poster))
+            else if ("vesselCrew".Equals(poster))
             {
                 this.poster = ShoutPoster.VesselCrew;
             }
-            if ("kscEmployee".Equals(poster))
+            else if ("kscEmployee".Equals(poster))
             {
                 this.poster = ShoutPoster.KSCEmployee;
             }
-            if ("ksc".Equals(poster))
+            else if ("ksc".Equals(poster))
             {
                 this.poster = ShoutPoster.KSC;
             }
-            if ("specific".Equals(poster))
+            else if ("specific".Equals(poster))
             {
                 this.poster = ShoutPoster.Specific;
 
+                // required
                 this.specificPoster = new Acct();
                 this.specificPoster.LoadFromConfigNode(node.GetNode(Acct.NODE_NAME));
             }
 
-            this.type = ShoutType.Unknown;
-            String type = node.GetValue("type");
-            if ("repLevel".Equals(type))
+            this.type = ShoutType.Random;
+            if (node.HasValue("type"))
             {
-                this.type = ShoutType.RepLevel;
-            }
-            if ("random".Equals(type))
-            {
-                this.type = ShoutType.Random;
-            }
-            if ("kscNews".Equals(type))
-            {
-                this.type = ShoutType.KSCNews;
+                String type = node.GetValue("type");
+                if ("repLevel".Equals(type))
+                {
+                    this.type = ShoutType.RepLevel;
+                }
+                if ("kscNews".Equals(type))
+                {
+                    this.type = ShoutType.KSCNews;
+                }
             }
             
+            // required
             this.text = node.GetValue("text");
-
+            
+            this.progressReqtArray = null;
             if (node.HasValue("progressReqt"))
             {
                 this.progressReqtArray = node.GetValue("progressReqt").
@@ -136,7 +136,7 @@ namespace KerbalSNS
             this.isRepeatable = true;
             if (node.HasValue("isRepeatable"))
             {
-                this.isRepeatable = "false".Equals(node.GetValue("isRepeatable"));
+                this.isRepeatable = "True".Equals(node.GetValue("isRepeatable"));
             }
         }
 
@@ -146,83 +146,70 @@ namespace KerbalSNS
 
             node.SetValue("name", this.name, true);
 
-            if (this.repLevel == RepLevel.Unknown)
+            switch (this.repLevel)
             {
-                node.SetValue("repLevel", "unknown", true);
-            }
-            if (this.repLevel == RepLevel.Any)
-            {
-                node.SetValue("repLevel", "any", true);
-            }
-            if (this.repLevel == RepLevel.VeryLow)
-            {
-                node.SetValue("repLevel", "veryLow", true);
-            }
-            if (this.repLevel == RepLevel.Low)
-            {
-                node.SetValue("repLevel", "low", true);
-            }
-            if (this.repLevel == RepLevel.Medium)
-            {
-                node.SetValue("repLevel", "medium", true);
-            }
-            if (this.repLevel == RepLevel.High)
-            {
-                node.SetValue("repLevel", "high", true);
-            }
-            if (this.repLevel == RepLevel.VeryHigh)
-            {
-                node.SetValue("repLevel", "veryHigh", true);
+                case RepLevel.VeryLow:
+                    node.SetValue("repLevel", "veryLow", true);
+                    break;
+                case RepLevel.Low:
+                    node.SetValue("repLevel", "low", true);
+                    break;
+                case RepLevel.Medium:
+                    node.SetValue("repLevel", "medium", true);
+                    break;
+                case RepLevel.High:
+                    node.SetValue("repLevel", "high", true);
+                    break;
+                case RepLevel.VeryHigh:
+                    node.SetValue("repLevel", "veryHigh", true);
+                    break;
+                case RepLevel.Any:
+                default:
+                    node.SetValue("type", "random", true);
+                    break;
             }
 
-            if (this.poster == ShoutPoster.Unknown)
+            switch (this.poster)
             {
-                node.SetValue("poster", "unknown", true);
-            }
-            if (this.poster == ShoutPoster.Any)
-            {
-                node.SetValue("poster", "any", true);
-            }
-            if (this.poster == ShoutPoster.LayKerbal)
-            {
-                node.SetValue("poster", "layKerbal", true);
-            }
-            if (this.poster == ShoutPoster.VesselCrew)
-            {
-                node.SetValue("poster", "vesselCrew", true);
-            }
-            if (this.poster == ShoutPoster.KSCEmployee)
-            {
-                node.SetValue("poster", "kscEmployee", true);
-            }
-            if (this.poster == ShoutPoster.KSC)
-            {
-                node.SetValue("poster", "ksc", true);
-            }
-            if (this.poster == ShoutPoster.Specific)
-            {
-                node.SetValue("poster", "specific", true);
+                case ShoutPoster.LayKerbal:
+                    node.SetValue("poster", "layKerbal", true);
+                    break;
+                case ShoutPoster.VesselCrew:
+                    node.SetValue("poster", "vesselCrew", true);
+                    break;
+                case ShoutPoster.KSCEmployee:
+                    node.SetValue("poster", "kscEmployee", true);
+                    break;
+                case ShoutPoster.KSC:
+                    node.SetValue("poster", "ksc", true);
+                    break;
+                case ShoutPoster.Specific:
+                    {
+                        node.SetValue("poster", "specific", true);
 
-                node.AddNode(this.specificPoster.SaveToConfigNode());
+                        node.AddNode(this.specificPoster.SaveToConfigNode());
+                    }
+                    break;
+                case ShoutPoster.Any:
+                default:
+                    node.SetValue("poster", "any", true);
+                    break;
             }
 
-            if (this.type == ShoutType.Unknown)
+            switch (this.type)
             {
-                node.SetValue("type", "unknown", true);
+                case ShoutType.RepLevel:
+                    node.SetValue("type", "repLevel", true);
+                    break;
+                case ShoutType.KSCNews:
+                    node.SetValue("type", "kscNews", true);
+                    break;
+                case ShoutType.Random:
+                default:
+                    node.SetValue("type", "random", true);
+                    break;
             }
-            if (this.type == ShoutType.RepLevel)
-            {
-                node.SetValue("type", "repLevel", true);
-            }
-            if (this.type == ShoutType.Random)
-            {
-                node.SetValue("type", "random", true);
-            }
-            if (this.type == ShoutType.KSCNews)
-            {
-                node.SetValue("type", "kscNews", true);
-            }
-
+            
             node.SetValue("text", this.text, true);
 
             if (this.progressReqtArray != null)
@@ -234,7 +221,7 @@ namespace KerbalSNS
                 node.SetValue("progressReqt", "");
             }
 
-            node.SetValue("isRepeatable", this.isRepeatable ? "true" : "false");
+            node.SetValue("isRepeatable", this.isRepeatable, true);
 
             return node;
         }
