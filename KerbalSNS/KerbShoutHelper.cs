@@ -35,16 +35,21 @@ namespace KerbalSNS
         {
             baseShoutList = new List<KerbBaseShout>();
 
-            ConfigNode rootShoutNode = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/KerbalSNS/baseShoutsList.cfg");
-            ConfigNode shoutListNode = rootShoutNode.GetNode(KerbBaseShout.NODE_NAME_PLURAL);
-
-            ConfigNode[] shoutArray = shoutListNode.GetNodes();
-            foreach (ConfigNode shoutNode in shoutArray)
+            UrlDir.UrlConfig[] allConfigArray = GameDatabase.Instance.root.AllConfigs.ToArray();
+            foreach (UrlDir.UrlConfig urlConfig in allConfigArray)
             {
-                KerbBaseShout shout = new KerbBaseShout();
-                shout.LoadFromConfigNode(shoutNode);
-                baseShoutList.Add(shout);
+                if (urlConfig.name.Equals(KerbBaseShout.NODE_NAME_PLURAL))
+                {
+                    ConfigNode[] shoutArray = urlConfig.config.GetNodes();
+                    foreach (ConfigNode shoutNode in shoutArray)
+                    {
+                        KerbBaseShout shout = new KerbBaseShout();
+                        shout.LoadFromConfigNode(shoutNode);
+                        baseShoutList.Add(shout);
+                    }
+                }
             }
+
         }
 
         public List<KerbShout> GetPostedShouts()

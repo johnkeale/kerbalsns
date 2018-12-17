@@ -36,15 +36,19 @@ namespace KerbalSNS
         {
             baseStoryList = new List<KerbBaseStory>();
 
-            ConfigNode rootStoryNode = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/KerbalSNS/baseStoriesList.cfg");
-            ConfigNode storyListNode = rootStoryNode.GetNode(KerbBaseStory.NODE_NAME_PLURAL);
-
-            ConfigNode[] storyArray = storyListNode.GetNodes();
-            foreach (ConfigNode storyNode in storyArray)
+            UrlDir.UrlConfig[] allConfigArray = GameDatabase.Instance.root.AllConfigs.ToArray();
+            foreach (UrlDir.UrlConfig urlConfig in allConfigArray)
             {
-                KerbBaseStory story = new KerbBaseStory();
-                story.LoadFromConfigNode(storyNode);
-                baseStoryList.Add(story);
+                if (urlConfig.name.Equals(KerbBaseStory.NODE_NAME_PLURAL))
+                {
+                    ConfigNode[] storyArray = urlConfig.config.GetNodes();
+                    foreach (ConfigNode storyNode in storyArray)
+                    {
+                        KerbBaseStory story = new KerbBaseStory();
+                        story.LoadFromConfigNode(storyNode);
+                        baseStoryList.Add(story);
+                    }
+                }
             }
         }
 

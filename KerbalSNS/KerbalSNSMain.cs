@@ -103,18 +103,21 @@ namespace KerbalSNS
                 {
                     KerbStory story = KerbStoryHelper.Instance.GenerateRandomStory();
 
-		            Debug.Log("Random story has happened.");
+                    if (story != null)
+                    {
+		                Debug.Log("Random story has happened.");
 		
-                    ScreenMessages.PostScreenMessage("A random story happened at " + story.postedOnVessel + "!");
+                        ScreenMessages.PostScreenMessage("A random story happened at " + story.postedOnVessel + "!");
 		
-		            MessageSystem.Message message = new MessageSystem.Message(
-                        "A random story happened at " + story.postedOnVessel + "!",
-		                story.postedText,
-		                MessageSystemButton.MessageButtonColor.BLUE,
-		                MessageSystemButton.ButtonIcons.MESSAGE
-		            );
+		                MessageSystem.Message message = new MessageSystem.Message(
+                            "A random story happened at " + story.postedOnVessel + "!",
+		                    story.postedText,
+		                    MessageSystemButton.MessageButtonColor.BLUE,
+		                    MessageSystemButton.ButtonIcons.MESSAGE
+		                );
 		
-		            MessageSystem.Instance.AddMessage(message);
+		                MessageSystem.Instance.AddMessage(message);
+                    }
                 }
             }
         }
