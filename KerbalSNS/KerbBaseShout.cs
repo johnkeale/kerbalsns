@@ -226,6 +226,46 @@ namespace KerbalSNS
             return node;
         }
 
+        public override int GetHashCode()
+        {
+            return name.GetHashCode();
+        }
+
+        public override bool Equals(Object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if (!(obj is KerbBaseStory))
+            {
+                return false;
+            }
+
+            KerbBaseStory other = (KerbBaseStory)obj;
+            if (this.name == null && other.name != null)
+            {
+                return false;
+            }
+            else
+            {
+                return this.name.Equals(other.name);
+            }
+        }
+
+        // debug
+        public override string ToString()
+        {
+            var properties = GetType().GetProperties();
+            var propertiesString = new StringBuilder();
+            foreach (var property in properties)
+            {
+                propertiesString.AppendLine(property.Name + ": " + property.GetValue(this, null));
+            }
+            return propertiesString.ToString();
+        }
+
         public class Acct
         {
             public const String NODE_NAME = "KERBSHOUTACCT";
