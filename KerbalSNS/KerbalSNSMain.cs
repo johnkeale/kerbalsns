@@ -736,10 +736,14 @@ namespace KerbalSNS
         // https://forum.kerbalspaceprogram.com/index.php?/topic/149324-popupdialog-and-the-dialoggui-classes/&do=findComment&comment=3213159
         private void addShoutTextInputLocking()
         {
-            if (this.shoutTextInput != null)
+            if (this.shoutTextInput == null)
             {
-                TMP_InputField tmp_input = this.shoutTextInput.uiItem.GetComponent<TMP_InputField>();
+                return;
+            }
 
+            TMP_InputField tmp_input = this.shoutTextInput.uiItem.GetComponent<TMP_InputField>();
+            if (tmp_input != null)
+            {
                 tmp_input.onSelect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputSelect));
                 tmp_input.onDeselect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputDeselect));
             }
