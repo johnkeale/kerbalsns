@@ -7,6 +7,8 @@ namespace KerbalSNS
 {
     class KerbalSNSUtils
     {
+        public const int VesselTypeAny = -1;
+
         private static System.Random mizer = new System.Random();
 
         public static bool HasAchievedAllProgressReqt(String[] progressReqtArray)
@@ -49,6 +51,73 @@ namespace KerbalSNS
                 }
 
                 return hasAchievedProgressReqt;
+            }
+        }
+
+        public static bool HasEnoughCrew(Vessel vessel, int crewCount)
+        {
+            return vessel.GetCrewCount() >= crewCount;
+        }
+
+        public static bool IsVesselTypeCorrect(Vessel vessel, int vesselType)
+        {
+            return vesselType == VesselTypeAny
+                || (vessel.vesselType == (VesselType)vesselType);
+        }
+
+        public static bool DoesVesselSituationMatch(Vessel vessel, String vesselSituation)
+        {
+            if (vesselSituation == null)
+            {
+                return true;
+            }
+
+            CelestialBody body =
+                FlightGlobals.Bodies.FirstOrDefault(b => vesselSituation.StartsWith(b.name));
+            if (body != null)
+            {
+                vesselSituation =
+                    vesselSituation.Substring(body.name.Length, vesselSituation.Length - body.name.Length);
+
+                Vessel.Situations situation = Vessel.Situations.PRELAUNCH;
+                if (vesselSituation.Equals("Landed"))
+                {
+                    situation = Vessel.Situations.LANDED;
+                }
+                else if (vesselSituation.Equals("Splashed"))
+                {
+                    situation = Vessel.Situations.SPLASHED;
+                }
+                else if (vesselSituation.Equals("Prelaunch"))
+                {
+                    situation = Vessel.Situations.PRELAUNCH;
+                }
+                else if (vesselSituation.Equals("Flying"))
+                {
+                    situation = Vessel.Situations.FLYING;
+                }
+                else if (vesselSituation.Equals("SubOrbital"))
+                {
+                    situation = Vessel.Situations.SUB_ORBITAL;
+                }
+                else if (vesselSituation.Equals("Orbiting"))
+                {
+                    situation = Vessel.Situations.ORBITING;
+                }
+                else if (vesselSituation.Equals("Escaping"))
+                {
+                    situation = Vessel.Situations.ESCAPING;
+                }
+                else if (vesselSituation.Equals("Docked"))
+                {
+                    situation = Vessel.Situations.DOCKED;
+                }
+
+                return vessel.mainBody.Equals(body) && vessel.situation == situation;
+            }
+            else
+            {
+                return false;
             }
         }
 

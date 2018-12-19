@@ -16,8 +16,6 @@ namespace KerbalSNS
             Situational,
         }
 
-        public const int VesselTypeAny = -1;
-
         public String name { get; set; }
         public int kerbalCount { get; set; }
         public StoryType type { get; set; }
@@ -64,7 +62,7 @@ namespace KerbalSNS
                 this.isRepeatable = "True".Equals(node.GetValue("isRepeatable"));
             }
 
-            this.vesselType = VesselTypeAny;
+            this.vesselType = KerbalSNSUtils.VesselTypeAny;
             if (node.HasValue("vesselType"))
             {
                 String vesselType = node.GetValue("vesselType");
@@ -180,7 +178,7 @@ namespace KerbalSNS
                 case (int)VesselType.Flag:
                     node.SetValue("vesselType", "flag", true);
                     break;
-                case VesselTypeAny:
+                case KerbalSNSUtils.VesselTypeAny:
                 default:
                     node.SetValue("vesselType", "any", true);
                     break;
