@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace KerbalSNS
@@ -111,17 +112,21 @@ namespace KerbalSNS
                 return false;
             }
 
-            return KerbalSNSUtils.HasEnoughCrew(vessel, baseStory.kerbalCount) 
+            int kerbalCount = Regex.Matches(baseStory.text, "%k").Count;
+
+            return KerbalSNSUtils.HasEnoughCrew(vessel, kerbalCount) 
                 && KerbalSNSUtils.IsVesselTypeCorrect(vessel, baseStory.vesselType) 
                 && KerbalSNSUtils.DoesVesselSituationMatch(vessel, baseStory.vesselSituation);
         }
 
-        private List<ProtoCrewMember> getViableKerbals(KerbBaseStory story, Vessel vessel)
+        private List<ProtoCrewMember> getViableKerbals(KerbBaseStory baseStory, Vessel vessel)
         {
             List<ProtoCrewMember> vesselCrewList = vessel.GetVesselCrew();
 
+            int kerbalCount = Regex.Matches(baseStory.text, "%k").Count;
+
             List<ProtoCrewMember> viableKerbalList = new List<ProtoCrewMember>();
-            for (int i = 0; i < story.kerbalCount; i++)
+            for (int i = 0; i < kerbalCount; i++)
             {
                 ProtoCrewMember kerbal = vesselCrewList[mizer.Next(vesselCrewList.Count)];
                 while (viableKerbalList.Contains(kerbal)) // TODO find a better way

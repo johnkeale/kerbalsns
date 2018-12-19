@@ -17,7 +17,6 @@ namespace KerbalSNS
         public KerbStory(KerbBaseStory baseStory)
         {
             this.name = baseStory.name;
-            this.kerbalCount = baseStory.kerbalCount;
             this.type = baseStory.type;
             this.text = baseStory.text;
             this.progressReqtArray = baseStory.progressReqtArray;

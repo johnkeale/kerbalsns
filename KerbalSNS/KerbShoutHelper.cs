@@ -277,13 +277,39 @@ namespace KerbalSNS
 
             shout.postedText =
                 Regex.Replace(baseShout.text, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
-            shout.postedText =
-                Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
 
-            if (shout.postedText.Contains("%v"))
+            if (baseShout.text.Contains("%v") || baseShout.text.Contains("%k"))
             {
                 Vessel vessel = getRandomViableVessel(baseShout);
                 shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
+
+                int kerbalCount = Regex.Matches(baseShout.text, "%k").Count;
+
+                int kerbalIndex = 1;
+                List<ProtoCrewMember> crewList = vessel.GetVesselCrew().ToList();
+                for (int i = 0; i < kerbalCount; i++)
+                {
+                    ProtoCrewMember randomKerbal = crewList[mizer.Next(crewList.Count)];
+                    crewList.Remove(randomKerbal);
+
+                    KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(randomKerbal.name);
+                    if (shoutAcct == null)
+                    {
+                        shoutAcct = new KerbShout.Acct(); // TODO refactor
+
+                        shoutAcct.name = "TODO";
+                        shoutAcct.fullname = randomKerbal.name;
+                        shoutAcct.username = "@KSC_" + makeLikeUsername(postedBy.fullname);
+
+                        KerbalSNSScenario.Instance.SaveShoutAcct(shoutAcct);
+                    }
+
+                    shout.postedText = shout.postedText.Replace("%k" + kerbalIndex, shoutAcct.username);
+                    kerbalIndex++;
+                }
+
+                shout.postedText =
+                    Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
             }
 
             return shout;
@@ -306,7 +332,10 @@ namespace KerbalSNS
 
         private bool isVesselViable(KerbBaseShout baseShout, Vessel vessel)
         {
-            return KerbalSNSUtils.IsVesselTypeCorrect(vessel, baseShout.vesselType)
+            int kerbalCount = Regex.Matches(baseShout.text, "%k").Count;
+
+            return KerbalSNSUtils.HasEnoughCrew(vessel, kerbalCount)
+                && KerbalSNSUtils.IsVesselTypeCorrect(vessel, baseShout.vesselType)
                 && KerbalSNSUtils.DoesVesselSituationMatch(vessel, baseShout.vesselSituation);
         }
 

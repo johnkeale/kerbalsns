@@ -17,7 +17,6 @@ namespace KerbalSNS
         }
 
         public String name { get; set; }
-        public int kerbalCount { get; set; }
         public StoryType type { get; set; }
         public String text { get; set; }
         public String[] progressReqtArray { get; set; }
@@ -32,9 +31,6 @@ namespace KerbalSNS
             {
                 this.name = node.GetValue("name");
             }
-
-            // required
-            this.kerbalCount = int.Parse(node.GetValue("kerbalCount"));
 
             this.type = StoryType.Random;
             if (node.HasValue("type"))
@@ -120,7 +116,6 @@ namespace KerbalSNS
             ConfigNode node = new ConfigNode(NODE_NAME);
 
             node.SetValue("name", this.name, true);
-            node.SetValue("kerbalCount", this.kerbalCount, true);
 
             switch (this.type)
             {
