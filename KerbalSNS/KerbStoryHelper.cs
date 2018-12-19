@@ -50,6 +50,7 @@ namespace KerbalSNS
                     }
                 }
             }
+
         }
 
         public List<KerbStory> GetPostedStories()
@@ -63,25 +64,43 @@ namespace KerbalSNS
         {
             List<KerbBaseStory> filteredBaseStoryList =
                 baseStoryList.Where(x => KerbalSNSUtils.HasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
+            if (filteredBaseStoryList.Count <= 0)
+            {
+                return null;
+            }
+
             KerbBaseStory baseStory = filteredBaseStoryList[mizer.Next(filteredBaseStoryList.Count)];
+            filteredBaseStoryList.Remove(baseStory);
 
             List<Vessel> vesselList =
                 FlightGlobals.Vessels.Where(x => isVesselViable(baseStory, x)).ToList();
 
-            if (vesselList.Count == 0)
+            while (vesselList.Count == 0 && filteredBaseStoryList.Count > 0)
             {
-                Debug.Log("No kerbals viable for this story");
-                return null;
+                baseStory = filteredBaseStoryList[mizer.Next(filteredBaseStoryList.Count)];
+                filteredBaseStoryList.Remove(baseStory);
+                vesselList =
+                    FlightGlobals.Vessels.Where(x => isVesselViable(baseStory, x)).ToList();
             }
 
-            Vessel vessel = vesselList[mizer.Next(vesselList.Count)];
+            if (vesselList.Count == 0)
+            {
+                Debug.Log("No kerbals viable for any story");
+                return null;
+            }
+            else
+            {
+                Debug.Log("There are Kerbals viable for story: " + baseStory.name);
 
-            List<ProtoCrewMember> kerbalList = getViableKerbals(baseStory, vessel);
+                Vessel vessel = vesselList[mizer.Next(vesselList.Count)];
 
-            KerbStory story = createStory(baseStory, vessel, kerbalList);
-            KerbalSNSScenario.Instance.RegisterStory(story);
+                List<ProtoCrewMember> kerbalList = getViableKerbals(baseStory, vessel);
 
-            return story;
+                KerbStory story = createStory(baseStory, vessel, kerbalList);
+                KerbalSNSScenario.Instance.RegisterStory(story);
+
+                return story;
+            }
         }
 
         private bool isVesselViable(KerbBaseStory baseStory, Vessel vessel)
@@ -93,18 +112,63 @@ namespace KerbalSNS
             }
 
             bool isCrewEnough = vessel.GetCrewCount() >= baseStory.kerbalCount;
-            bool isVesselValid =
-                (vessel.vesselType == VesselType.Base
-                    && (vessel.situation == Vessel.Situations.LANDED
-                        || vessel.situation == Vessel.Situations.SPLASHED))
-                || (vessel.vesselType == VesselType.Station
-                    && (vessel.situation == Vessel.Situations.ORBITING
-                        /*|| vessel.situation == Vessel.Situations.ESCAPING
-                        || vessel.situation == Vessel.Situations.FLYING*/));
-            bool isBodyValid = baseStory.bodyName == null
-                || vessel.mainBody.name.Equals(baseStory.bodyName);
+            bool doesVesselTypeMatch = baseStory.vesselType == KerbBaseStory.VesselTypeAny
+                || (vessel.vesselType == (VesselType)baseStory.vesselType);
 
-            return isCrewEnough && isVesselValid && isBodyValid;
+            bool doesVesselSituationMatch = true;
+            if (baseStory.vesselSituation != null)
+            {
+                String vesselSituation = baseStory.vesselSituation;
+                CelestialBody body = 
+                    FlightGlobals.Bodies.FirstOrDefault(b => vesselSituation.StartsWith(b.name));
+                if (body != null)
+                {
+                    vesselSituation =
+                        vesselSituation.Substring(body.name.Length, vesselSituation.Length - body.name.Length);
+
+                    Vessel.Situations situation = Vessel.Situations.PRELAUNCH;
+                    if (vesselSituation.Equals("Landed"))
+                    {
+                        situation = Vessel.Situations.LANDED;
+                    }
+                    else if (vesselSituation.Equals("Splashed"))
+                    {
+                        situation = Vessel.Situations.SPLASHED;
+                    }
+                    else if (vesselSituation.Equals("Prelaunch"))
+                    {
+                        situation = Vessel.Situations.PRELAUNCH;
+                    }
+                    else if (vesselSituation.Equals("Flying"))
+                    {
+                        situation = Vessel.Situations.FLYING;
+                    }
+                    else if (vesselSituation.Equals("SubOrbital"))
+                    {
+                        situation = Vessel.Situations.SUB_ORBITAL;
+                    }
+                    else if (vesselSituation.Equals("Orbiting"))
+                    {
+                        situation = Vessel.Situations.ORBITING;
+                    }
+                    else if (vesselSituation.Equals("Escaping"))
+                    {
+                        situation = Vessel.Situations.ESCAPING;
+                    }
+                    else if (vesselSituation.Equals("Docked"))
+                    {
+                        situation = Vessel.Situations.DOCKED;
+                    }
+
+                    doesVesselSituationMatch = vessel.mainBody.Equals(body) && vessel.situation == situation;
+                }
+                else
+                {
+                    doesVesselSituationMatch = false;
+                }
+            }
+
+            return isCrewEnough && doesVesselTypeMatch && doesVesselSituationMatch;
         }
 
         private List<ProtoCrewMember> getViableKerbals(KerbBaseStory story, Vessel vessel)

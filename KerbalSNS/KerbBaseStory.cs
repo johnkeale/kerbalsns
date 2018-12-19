@@ -16,13 +16,16 @@ namespace KerbalSNS
             Situational,
         }
 
+        public const int VesselTypeAny = -1;
+
         public String name { get; set; }
         public int kerbalCount { get; set; }
         public StoryType type { get; set; }
         public String text { get; set; }
         public String[] progressReqtArray { get; set; }
         public bool isRepeatable { get; set; }
-        public String bodyName { get; set; }
+        public int vesselType { get; set; }
+        public String vesselSituation { get; set; }
 
         public virtual void LoadFromConfigNode(ConfigNode node)
         {
@@ -61,10 +64,56 @@ namespace KerbalSNS
                 this.isRepeatable = "True".Equals(node.GetValue("isRepeatable"));
             }
 
-            this.bodyName = null;
-            if (node.HasValue("bodyName"))
+            this.vesselType = VesselTypeAny;
+            if (node.HasValue("vesselType"))
             {
-                this.bodyName = node.GetValue("bodyName");
+                String vesselType = node.GetValue("vesselType");
+                if (vesselType.Equals("probe"))
+                {
+                    this.vesselType = (int)VesselType.Probe;
+                }
+                else if (vesselType.Equals("relay"))
+                {
+                    this.vesselType = (int)VesselType.Relay;
+                }
+                else if (vesselType.Equals("rover"))
+                {
+                    this.vesselType = (int)VesselType.Rover;
+                }
+                else if (vesselType.Equals("lander"))
+                {
+                    this.vesselType = (int)VesselType.Lander;
+                }
+                else if (vesselType.Equals("ship"))
+                {
+                    this.vesselType = (int)VesselType.Ship;
+                }
+                else if (vesselType.Equals("plane"))
+                {
+                    this.vesselType = (int)VesselType.Plane;
+                }
+                else if (vesselType.Equals("station"))
+                {
+                    this.vesselType = (int)VesselType.Station;
+                }
+                else if (vesselType.Equals("base"))
+                {
+                    this.vesselType = (int)VesselType.Base;
+                }
+                else if (vesselType.Equals("eva"))
+                {
+                    this.vesselType = (int)VesselType.EVA;
+                }
+                else if (vesselType.Equals("flag"))
+                {
+                    this.vesselType = (int)VesselType.Flag;
+                }
+            }
+
+            this.vesselSituation = null;
+            if (node.HasValue("vesselSituation"))
+            {
+                this.vesselSituation = node.GetValue("vesselSituation");
             }
         }
 
@@ -99,13 +148,51 @@ namespace KerbalSNS
 
             node.SetValue("isRepeatable", this.isRepeatable, true);
 
-            if (this.progressReqtArray != null)
+            switch (this.vesselType)
             {
-                node.SetValue("bodyName", this.bodyName, true);
+                case (int)VesselType.Probe:
+                    node.SetValue("vesselType", "probe", true);
+                    break;
+                case (int)VesselType.Relay:
+                    node.SetValue("vesselType", "relay", true);
+                    break;
+                case (int)VesselType.Rover:
+                    node.SetValue("vesselType", "rover", true);
+                    break;
+                case (int)VesselType.Lander:
+                    node.SetValue("vesselType", "lander", true);
+                    break;
+                case (int)VesselType.Ship:
+                    node.SetValue("vesselType", "ship", true);
+                    break;
+                case (int)VesselType.Plane:
+                    node.SetValue("vesselType", "plane", true);
+                    break;
+                case (int)VesselType.Station:
+                    node.SetValue("vesselType", "station", true);
+                    break;
+                case (int)VesselType.Base:
+                    node.SetValue("vesselType", "base", true);
+                    break;
+                case (int)VesselType.EVA:
+                    node.SetValue("vesselType", "eva", true);
+                    break;
+                case (int)VesselType.Flag:
+                    node.SetValue("vesselType", "flag", true);
+                    break;
+                case VesselTypeAny:
+                default:
+                    node.SetValue("vesselType", "any", true);
+                    break;
+            }
+
+            if (this.vesselSituation != null)
+            {
+                node.SetValue("vesselSituation", this.vesselSituation, true);
             }
             else
             {
-                node.SetValue("bodyName", "", true);
+                node.SetValue("vesselSituation", "", true);
             }
 
             return node;
