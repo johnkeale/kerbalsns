@@ -164,6 +164,13 @@ namespace KerbalSNS
             List<KerbBaseShout> filteredBaseShoutList = baseShoutList.Where(predicate).ToList();
             filteredBaseShoutList =
                 filteredBaseShoutList.Where(x => KerbalSNSUtils.HasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
+            filteredBaseShoutList =
+                filteredBaseShoutList.Where(
+                    x =>
+                        x.vesselType == KerbalSNSUtils.VesselTypeAny
+                        || x.vesselSituation == null
+                        || getRandomViableVessel(x) != null
+                    ).ToList();
 
             List<KerbShout> shoutList = new List<KerbShout>();
 
@@ -174,9 +181,60 @@ namespace KerbalSNS
                     KerbBaseShout baseShout =
                         filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
 
-                    KerbShout.Acct postedBy = buildShoutPostedBy(baseShout);
+                    KerbShout.Acct postedBy = new KerbShout.Acct();
 
-                    KerbShout shout = createShout(baseShout, postedBy); // TODO add maximum time? (e.g. don't insert shouts on the list)
+                    if (baseShout.poster == KerbBaseShout.ShoutPoster.Specific)
+                    {
+                        KerbalSNSScenario.Instance.SaveShoutAcct(baseShout.specificPoster);
+                        postedBy = baseShout.specificPoster;
+                    }
+                    else
+                    {
+                        postedBy.name = "TODO";
+
+                        if (baseShout.poster == KerbBaseShout.ShoutPoster.Any
+                            || baseShout.poster == KerbBaseShout.ShoutPoster.LayKerbal)
+                        {
+                            postedBy.fullname = KerbalSNSUtils.RandomLayKerbalName();
+                            postedBy.username = "@" + makeLikeUsername(postedBy.fullname);
+                        }
+                        else if (baseShout.poster == KerbBaseShout.ShoutPoster.VesselCrew)
+                        {
+                            postedBy.fullname = KerbalSNSUtils.RandomActiveCrewKerbalName();
+
+                            KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(postedBy.fullname);
+                            if (shoutAcct != null)
+                            {
+                                postedBy = shoutAcct;
+                            }
+                            else
+                            {
+                                postedBy.username = "@KSC_" + makeLikeUsername(postedBy.fullname);
+                            }
+                            KerbalSNSScenario.Instance.SaveShoutAcct(postedBy);
+                        }
+                        else if (baseShout.poster == KerbBaseShout.ShoutPoster.KSCEmployee)
+                        {
+                            postedBy.fullname = KerbalSNSUtils.RandomLayKerbalName();
+
+                            KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(postedBy.fullname);
+                            if (shoutAcct != null)
+                            {
+                                postedBy = shoutAcct;
+                            }
+                            else
+                            {
+                                postedBy.username = "@KSC_" + makeLikeUsername(postedBy.fullname);
+                            }
+                            KerbalSNSScenario.Instance.SaveShoutAcct(postedBy);
+                        }
+                        else if (baseShout.poster == KerbBaseShout.ShoutPoster.KSC)
+                        {
+                            postedBy = KerbShout.Acct.KSC_OFFICIAL;
+                        }
+                    }
+
+                    KerbShout shout = createShout(baseShout, postedBy);
                     shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
 
                     shoutList.Add(shout);
@@ -222,64 +280,34 @@ namespace KerbalSNS
             shout.postedText =
                 Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
 
-            // TODO add some formatting if needed
+            if (shout.postedText.Contains("%v"))
+            {
+                Vessel vessel = getRandomViableVessel(baseShout);
+                shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
+            }
 
             return shout;
         }
 
-        private KerbShout.Acct buildShoutPostedBy(KerbBaseShout baseShout)
+        private Vessel getRandomViableVessel(KerbBaseShout baseShout)
         {
-            if (baseShout.poster == KerbBaseShout.ShoutPoster.Specific)
+            List<Vessel> vesselList =
+                FlightGlobals.Vessels.Where(x => isVesselViable(baseShout, x)).ToList();
+            if (vesselList.Count == 0)
             {
-                KerbalSNSScenario.Instance.SaveShoutAcct(baseShout.specificPoster);
-                return baseShout.specificPoster;
+                return null;
+            }
+            else
+            {
+                return vesselList[mizer.Next(vesselList.Count)];
             }
 
-            KerbShout.Acct postedBy = new KerbShout.Acct();
-            postedBy.name = "TODO";
+        }
 
-            if (baseShout.poster == KerbBaseShout.ShoutPoster.Any
-                || baseShout.poster == KerbBaseShout.ShoutPoster.LayKerbal)
-            {
-                postedBy.fullname = KerbalSNSUtils.RandomLayKerbalName();
-                postedBy.username = "@" + makeLikeUsername(postedBy.fullname);
-            }
-            else if (baseShout.poster == KerbBaseShout.ShoutPoster.VesselCrew)
-            {
-                postedBy.fullname = KerbalSNSUtils.RandomActiveCrewKerbalName();
-
-                KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(postedBy.fullname);
-                if (shoutAcct != null)
-                {
-                    postedBy = shoutAcct;
-                }
-                else
-                {
-                    postedBy.username = "@KSC_" + makeLikeUsername(postedBy.fullname);
-                }
-                KerbalSNSScenario.Instance.SaveShoutAcct(postedBy);
-            }
-            else if (baseShout.poster == KerbBaseShout.ShoutPoster.KSCEmployee)
-            {
-                postedBy.fullname = KerbalSNSUtils.RandomLayKerbalName();
-
-                KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(postedBy.fullname);
-                if (shoutAcct != null)
-                {
-                    postedBy = shoutAcct;
-                }
-                else
-                {
-                    postedBy.username = "@KSC_" + makeLikeUsername(postedBy.fullname);
-                }
-                KerbalSNSScenario.Instance.SaveShoutAcct(postedBy);
-            }
-            else if (baseShout.poster == KerbBaseShout.ShoutPoster.KSC)
-            {
-                postedBy = KerbShout.Acct.KSC_OFFICIAL;
-            }
-
-            return postedBy;
+        private bool isVesselViable(KerbBaseShout baseShout, Vessel vessel)
+        {
+            return KerbalSNSUtils.IsVesselTypeCorrect(vessel, baseShout.vesselType)
+                && KerbalSNSUtils.DoesVesselSituationMatch(vessel, baseShout.vesselSituation);
         }
 
         private String makeLikeUsername(String name)

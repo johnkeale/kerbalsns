@@ -24,6 +24,8 @@ namespace KerbalSNS
             this.text = baseShout.text;
             this.progressReqtArray = baseShout.progressReqtArray;
             this.isRepeatable = baseShout.isRepeatable;
+            this.vesselType = baseShout.vesselType;
+            this.vesselSituation = baseShout.vesselSituation;
         }
 
         public override void LoadFromConfigNode(ConfigNode node)
