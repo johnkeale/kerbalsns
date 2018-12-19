@@ -238,12 +238,12 @@ namespace KerbalSNS
                 return false;
             }
 
-            if (!(obj is KerbBaseStory))
+            if (!(obj is KerbBaseShout))
             {
                 return false;
             }
 
-            KerbBaseStory other = (KerbBaseStory)obj;
+            KerbBaseShout other = (KerbBaseShout)obj;
             if (this.name == null && other.name != null)
             {
                 return false;

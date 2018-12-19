@@ -201,8 +201,40 @@ namespace KerbalSNS
 
             story.postedText = baseStory.text;
 
-            String vesselType = (vessel.vesselType == VesselType.Base) ?
-                "base" : "station";
+            String vesselType = "";
+            switch (vessel.vesselType)
+            {
+                case VesselType.Probe:
+                    vesselType = "probe";
+                    break;
+                case VesselType.Relay:
+                    vesselType = "relay";
+                    break;
+                case VesselType.Rover:
+                    vesselType = "rover";
+                    break;
+                case VesselType.Lander:
+                    vesselType = "lander";
+                    break;
+                case VesselType.Ship:
+                    vesselType = "ship";
+                    break;
+                case VesselType.Plane:
+                    vesselType = "plane";
+                    break;
+                case VesselType.Station:
+                    vesselType = "station";
+                    break;
+                case VesselType.Base:
+                    vesselType = "base";
+                    break;
+                case VesselType.EVA:
+                    vesselType = "eva";
+                    break;
+                case VesselType.Flag:
+                    vesselType = "flag";
+                    break;
+            }
             story.postedText = story.postedText.Replace("%v", vesselType);
 
             int kerbalIndex = 1;
