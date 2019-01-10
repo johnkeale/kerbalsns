@@ -48,6 +48,7 @@ namespace KerbalSNS
         public bool isRepeatable { get; set; }
         public int vesselType { get; set; }
         public String vesselSituation { get; set; }
+        public String gameEvent { get; set; }
 
         public virtual void LoadFromConfigNode(ConfigNode node)
         {
@@ -192,6 +193,12 @@ namespace KerbalSNS
             {
                 this.vesselSituation = node.GetValue("vesselSituation");
             }
+
+            this.gameEvent = null;
+            if (node.HasValue("gameEvent"))
+            {
+                this.gameEvent = node.GetValue("gameEvent");
+            }
         }
 
         public virtual ConfigNode SaveToConfigNode()
@@ -322,6 +329,15 @@ namespace KerbalSNS
             else
             {
                 node.SetValue("vesselSituation", "", true);
+            }
+
+            if (this.gameEvent != null)
+            {
+                node.SetValue("gameEvent", this.gameEvent, true);
+            }
+            else
+            {
+                node.SetValue("gameEvent", "", true);
             }
 
             return node;
