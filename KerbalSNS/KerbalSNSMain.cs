@@ -134,12 +134,9 @@ namespace KerbalSNS
             {
                 return;
             }
-            // XXX
-            if (this.shouldSpawnBrowserDialog)
-            {
-                // FIXME scroll bar is on the middle at the start
-                spawnBrowserDialog(BrowserType.Stories);
-            }
+
+            // FIXME scroll bar is on the middle at the start
+            spawnBrowserDialog(BrowserType.Stories);
         }
         
         enum BrowserType { Stories, Shouts };
@@ -636,7 +633,7 @@ namespace KerbalSNS
             createLauncher();
         }
 
-        public void onGameSceneSwitchRequested(GameEvents.FromToAction<GameScenes, GameScenes> ev)
+        public void onGameSceneSwitchRequested(GameEvents.FromToAction<GameScenes, GameScenes> fromToAction)
         {
             if (this.appLauncherButton != null)
             {
