@@ -69,7 +69,7 @@ namespace KerbalSNS
             baseShout.type = KerbBaseShout.ShoutType.Random;
             baseShout.text = text;
 
-            baseShout.poster = KerbBaseShout.ShoutPoster.KSC;
+            baseShout.posterType = KerbBaseShout.PosterType.KSC;
             KerbShout.Acct postedBy = KerbShout.Acct.KSC_OFFICIAL;
 
             if (FlightGlobals.ActiveVessel != null)
@@ -77,7 +77,7 @@ namespace KerbalSNS
                 String fullname = KerbalSNSUtils.RandomVesselCrewKerbalName(FlightGlobals.ActiveVessel);
                 if (fullname != null)
                 {
-                    baseShout.poster = KerbBaseShout.ShoutPoster.VesselCrew;
+                    baseShout.posterType = KerbBaseShout.PosterType.VesselCrew;
 
                     ensureKSCShoutAcctExists(fullname);
                     postedBy = KerbalSNSScenario.Instance.FindShoutAcct(fullname);
@@ -172,15 +172,15 @@ namespace KerbalSNS
 
                     KerbShout.Acct postedBy = null;
 
-                    if (baseShout.poster == KerbBaseShout.ShoutPoster.Specific)
+                    if (baseShout.posterType == KerbBaseShout.PosterType.Specific)
                     {
                         KerbalSNSScenario.Instance.SaveShoutAcct(baseShout.specificPoster);
                         postedBy = baseShout.specificPoster;
                     }
                     else
                     {
-                        if (baseShout.poster == KerbBaseShout.ShoutPoster.Any
-                            || baseShout.poster == KerbBaseShout.ShoutPoster.LayKerbal)
+                        if (baseShout.posterType == KerbBaseShout.PosterType.Any
+                            || baseShout.posterType == KerbBaseShout.PosterType.LayKerbal)
                         {
                             postedBy = new KerbShout.Acct();
                             postedBy.name = "TODO";
@@ -188,17 +188,17 @@ namespace KerbalSNS
                             postedBy.fullname = KerbalSNSUtils.RandomLayKerbalName();
                             postedBy.username = "@" + makeLikeUsername(postedBy.fullname);
                         }
-                        else if (baseShout.poster == KerbBaseShout.ShoutPoster.VesselCrew
-                            || baseShout.poster == KerbBaseShout.ShoutPoster.KSCEmployee)
+                        else if (baseShout.posterType == KerbBaseShout.PosterType.VesselCrew
+                            || baseShout.posterType == KerbBaseShout.PosterType.KSCEmployee)
                         {
-                            String fullname = baseShout.poster == KerbBaseShout.ShoutPoster.VesselCrew ?
+                            String fullname = baseShout.posterType == KerbBaseShout.PosterType.VesselCrew ?
                                 KerbalSNSUtils.RandomActiveCrewKerbalName() :
                                 KerbalSNSUtils.RandomLayKerbalName();
 
                             ensureKSCShoutAcctExists(fullname);
                             postedBy = KerbalSNSScenario.Instance.FindShoutAcct(fullname);
                         }
-                        else if (baseShout.poster == KerbBaseShout.ShoutPoster.KSC)
+                        else if (baseShout.posterType == KerbBaseShout.PosterType.KSC)
                         {
                             postedBy = KerbShout.Acct.KSC_OFFICIAL;
                         }

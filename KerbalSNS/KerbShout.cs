@@ -18,7 +18,7 @@ namespace KerbalSNS
         {
             this.name = baseShout.name;
             this.repLevel = baseShout.repLevel;
-            this.poster = baseShout.poster;
+            this.posterType = baseShout.posterType;
             this.specificPoster = baseShout.specificPoster;
             this.type = baseShout.type;
             this.text = baseShout.text;
@@ -35,7 +35,7 @@ namespace KerbalSNS
             this.postedId = node.GetValue("postedId");
 
             this.postedBy = new Acct();
-            if (this.poster != ShoutPoster.Specific)
+            if (this.posterType != KerbBaseShout.PosterType.Specific)
             {
                 this.postedBy.LoadFromConfigNode(node.GetNode(Acct.NODE_NAME));
             }

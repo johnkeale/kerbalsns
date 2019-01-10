@@ -21,7 +21,7 @@ namespace KerbalSNS
             VeryHigh,
         }
 
-        public enum ShoutPoster
+        public enum PosterType
         {
             Any,
             LayKerbal,
@@ -40,7 +40,7 @@ namespace KerbalSNS
 
         public String name { get; set; }
         public RepLevel repLevel { get; set; }
-        public ShoutPoster poster { get; set; }
+        public PosterType posterType { get; set; }
         public Acct specificPoster { get; set; }
         public ShoutType type { get; set; }
         public String text { get; set; }
@@ -84,27 +84,27 @@ namespace KerbalSNS
             }
 
             // required
-            this.poster = ShoutPoster.Any;
-            String poster = node.GetValue("poster");
-            if ("layKerbal".Equals(poster))
+            this.posterType = PosterType.Any;
+            String posterType = node.GetValue("posterType");
+            if ("layKerbal".Equals(posterType))
             {
-                this.poster = ShoutPoster.LayKerbal;
+                this.posterType = PosterType.LayKerbal;
             }
-            else if ("vesselCrew".Equals(poster))
+            else if ("vesselCrew".Equals(posterType))
             {
-                this.poster = ShoutPoster.VesselCrew;
+                this.posterType = PosterType.VesselCrew;
             }
-            else if ("kscEmployee".Equals(poster))
+            else if ("kscEmployee".Equals(posterType))
             {
-                this.poster = ShoutPoster.KSCEmployee;
+                this.posterType = PosterType.KSCEmployee;
             }
-            else if ("ksc".Equals(poster))
+            else if ("ksc".Equals(posterType))
             {
-                this.poster = ShoutPoster.KSC;
+                this.posterType = PosterType.KSC;
             }
-            else if ("specific".Equals(poster))
+            else if ("specific".Equals(posterType))
             {
-                this.poster = ShoutPoster.Specific;
+                this.posterType = PosterType.Specific;
 
                 // required
                 this.specificPoster = new Acct();
@@ -201,7 +201,7 @@ namespace KerbalSNS
             node.SetValue("name", this.name, true);
 
             switch (this.repLevel)
-            {
+			{
                 case RepLevel.VeryLow:
                     node.SetValue("repLevel", "veryLow", true);
                     break;
@@ -223,30 +223,30 @@ namespace KerbalSNS
                     break;
             }
 
-            switch (this.poster)
+            switch (this.posterType)
             {
-                case ShoutPoster.LayKerbal:
-                    node.SetValue("poster", "layKerbal", true);
+                case PosterType.LayKerbal:
+                    node.SetValue("posterType", "layKerbal", true);
                     break;
-                case ShoutPoster.VesselCrew:
-                    node.SetValue("poster", "vesselCrew", true);
+                case PosterType.VesselCrew:
+                    node.SetValue("posterType", "vesselCrew", true);
                     break;
-                case ShoutPoster.KSCEmployee:
-                    node.SetValue("poster", "kscEmployee", true);
+                case PosterType.KSCEmployee:
+                    node.SetValue("posterType", "kscEmployee", true);
                     break;
-                case ShoutPoster.KSC:
-                    node.SetValue("poster", "ksc", true);
+                case PosterType.KSC:
+                    node.SetValue("posterType", "ksc", true);
                     break;
-                case ShoutPoster.Specific:
+                case PosterType.Specific:
                     {
-                        node.SetValue("poster", "specific", true);
+                        node.SetValue("posterType", "specific", true);
 
-                        node.AddNode(this.specificPoster.SaveToConfigNode());
-                    }
+				        node.AddNode(this.specificPoster.SaveToConfigNode());
+			        }
                     break;
-                case ShoutPoster.Any:
+                case PosterType.Any:
                 default:
-                    node.SetValue("poster", "any", true);
+                    node.SetValue("posterType", "any", true);
                     break;
             }
 
