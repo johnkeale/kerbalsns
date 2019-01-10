@@ -65,11 +65,11 @@ namespace KerbalSNS
             KerbBaseShout baseShout = new KerbBaseShout();
 
             baseShout.name = "TODO";
-            baseShout.repLevel = KerbBaseShout.RepLevel.Any;
-            baseShout.type = KerbBaseShout.ShoutType.Random;
+            baseShout.repLevel = KerbBaseShout.RepLevel_Any;
+            baseShout.type = KerbBaseShout.ShoutType_Random;
             baseShout.text = text;
 
-            baseShout.posterType = KerbBaseShout.PosterType.KSC;
+            baseShout.posterType = KerbBaseShout.PosterType_KSC;
             KerbShout.Acct postedBy = KerbShout.Acct.KSC_OFFICIAL;
 
             if (FlightGlobals.ActiveVessel != null)
@@ -77,7 +77,7 @@ namespace KerbalSNS
                 String fullname = KerbalSNSUtils.RandomVesselCrewKerbalName(FlightGlobals.ActiveVessel);
                 if (fullname != null)
                 {
-                    baseShout.posterType = KerbBaseShout.PosterType.VesselCrew;
+                    baseShout.posterType = KerbBaseShout.PosterType_VesselCrew;
 
                     ensureKSCShoutAcctExists(fullname);
                     postedBy = KerbalSNSScenario.Instance.FindShoutAcct(fullname);
@@ -109,7 +109,7 @@ namespace KerbalSNS
                 List<KerbShout> repLevelShoutList =
                     generateShouts(
                         x => (
-                            x.type == KerbBaseShout.ShoutType.RepLevel
+                            x.type == KerbBaseShout.ShoutType_RepLevel
                             && x.repLevel == getCurrentRepLevel()
                         ),
                         repLevelShoutCount,
@@ -122,7 +122,7 @@ namespace KerbalSNS
                 List<KerbShout> outlierRepLevelShoutList =
                     generateShouts(
                         x => (
-                            x.type == KerbBaseShout.ShoutType.RepLevel
+                            x.type == KerbBaseShout.ShoutType_RepLevel
                             && x.repLevel != getCurrentRepLevel()
                         ),
                         outlierRepLevelShoutCount,
@@ -135,7 +135,7 @@ namespace KerbalSNS
                 List<KerbShout> otherShoutList =
                     generateShouts(
                         x => (
-                            x.type != KerbBaseShout.ShoutType.RepLevel
+                            x.type != KerbBaseShout.ShoutType_RepLevel
                         ),
                         neededShoutCount - repLevelShoutCount,
                         now);
@@ -172,15 +172,15 @@ namespace KerbalSNS
 
                     KerbShout.Acct postedBy = null;
 
-                    if (baseShout.posterType == KerbBaseShout.PosterType.Specific)
+                    if (baseShout.posterType == KerbBaseShout.PosterType_Specific)
                     {
                         KerbalSNSScenario.Instance.SaveShoutAcct(baseShout.specificPoster);
                         postedBy = baseShout.specificPoster;
                     }
                     else
                     {
-                        if (baseShout.posterType == KerbBaseShout.PosterType.Any
-                            || baseShout.posterType == KerbBaseShout.PosterType.LayKerbal)
+                        if (baseShout.posterType == KerbBaseShout.PosterType_Any
+                            || baseShout.posterType == KerbBaseShout.PosterType_LayKerbal)
                         {
                             postedBy = new KerbShout.Acct();
                             postedBy.name = "TODO";
@@ -188,17 +188,17 @@ namespace KerbalSNS
                             postedBy.fullname = KerbalSNSUtils.RandomLayKerbalName();
                             postedBy.username = "@" + makeLikeUsername(postedBy.fullname);
                         }
-                        else if (baseShout.posterType == KerbBaseShout.PosterType.VesselCrew
-                            || baseShout.posterType == KerbBaseShout.PosterType.KSCEmployee)
+                        else if (baseShout.posterType == KerbBaseShout.PosterType_VesselCrew
+                            || baseShout.posterType == KerbBaseShout.PosterType_KSCEmployee)
                         {
-                            String fullname = baseShout.posterType == KerbBaseShout.PosterType.VesselCrew ?
+                            String fullname = baseShout.posterType == KerbBaseShout.PosterType_VesselCrew ?
                                 KerbalSNSUtils.RandomActiveCrewKerbalName() :
                                 KerbalSNSUtils.RandomLayKerbalName();
 
                             ensureKSCShoutAcctExists(fullname);
                             postedBy = KerbalSNSScenario.Instance.FindShoutAcct(fullname);
                         }
-                        else if (baseShout.posterType == KerbBaseShout.PosterType.KSC)
+                        else if (baseShout.posterType == KerbBaseShout.PosterType_KSC)
                         {
                             postedBy = KerbShout.Acct.KSC_OFFICIAL;
                         }
@@ -348,29 +348,29 @@ namespace KerbalSNS
             return username;
         }
 
-        private KerbShout.RepLevel getCurrentRepLevel()
+        private String getCurrentRepLevel()
         {
             if (-1000f <= Reputation.CurrentRep && Reputation.CurrentRep < -600f)
             {
-                return KerbBaseShout.RepLevel.VeryLow;
+                return KerbBaseShout.RepLevel_VeryLow;
             }
             else if (-600f <= Reputation.CurrentRep && Reputation.CurrentRep < -200f)
             {
-                return KerbBaseShout.RepLevel.Low;
+                return KerbBaseShout.RepLevel_Low;
             }
             else if (-200f <= Reputation.CurrentRep && Reputation.CurrentRep < 200f)
             {
-                return KerbBaseShout.RepLevel.Medium;
+                return KerbBaseShout.RepLevel_Medium;
             }
             else if (200f <= Reputation.CurrentRep && Reputation.CurrentRep < 600f)
             {
-                return KerbBaseShout.RepLevel.High;
+                return KerbBaseShout.RepLevel_High;
             }
             else if (600f <= Reputation.CurrentRep && Reputation.CurrentRep < 1000f)
             {
-                return KerbBaseShout.RepLevel.VeryHigh;
+                return KerbBaseShout.RepLevel_VeryHigh;
             }
-            return KerbBaseShout.RepLevel.Any;
+            return KerbBaseShout.RepLevel_Any;
         }
 
         private void ensureKSCShoutAcctExists(String fullname)

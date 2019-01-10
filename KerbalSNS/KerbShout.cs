@@ -36,7 +36,7 @@ namespace KerbalSNS
             this.postedId = node.GetValue("postedId");
 
             this.postedBy = new Acct();
-            if (this.posterType != KerbBaseShout.PosterType.Specific)
+            if (this.posterType != PosterType_Specific)
             {
                 this.postedBy.LoadFromConfigNode(node.GetNode(Acct.NODE_NAME));
             }
