@@ -102,6 +102,7 @@ namespace KerbalSNS
                 if (postStoryChance <= KerbalSNSSettings.StoryChance)
                 {
                     KerbStory story = KerbStoryHelper.Instance.GenerateRandomStory();
+                    KerbalSNSScenario.Instance.RegisterStory(story);
 
                     if (story != null)
                     {
@@ -540,8 +541,9 @@ namespace KerbalSNS
                     new DialogGUIButton(
                         "Shout!",
                         delegate {
-                            KerbShoutHelper.Instance.GenerateShout(enteredShout);
-                            
+                            KerbShout shout = KerbShoutHelper.Instance.GenerateShout(enteredShout);
+                            KerbalSNSScenario.Instance.RegisterShout(shout);
+
                             saveLastBrowserDialogPosition();
                             spawnBrowserDialog(BrowserType.Shouts);
                         },

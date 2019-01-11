@@ -98,7 +98,6 @@ namespace KerbalSNS
                 List<ProtoCrewMember> kerbalList = getViableKerbals(baseStory, vessel);
 
                 KerbStory story = createStory(baseStory, vessel, kerbalList);
-                KerbalSNSScenario.Instance.RegisterStory(story);
 
                 return story;
             }

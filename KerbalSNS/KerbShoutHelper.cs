@@ -60,7 +60,7 @@ namespace KerbalSNS
             return shoutList;
         }
 
-        public void GenerateShout(String text)
+        public KerbShout GenerateShout(String text)
         {
             KerbBaseShout baseShout = new KerbBaseShout();
 
@@ -85,7 +85,7 @@ namespace KerbalSNS
             }
 
             KerbShout shout = createShout(baseShout, postedBy);
-            KerbalSNSScenario.Instance.RegisterShout(shout);
+            return shout;
         }
 
         private List<KerbShout> updateShoutsIfNeeded(List<KerbShout> shoutList)
@@ -106,8 +106,11 @@ namespace KerbalSNS
                     repLevelShoutCount -= outlierRepLevelShoutCount;
                 }
 
+                List<KerbBaseShout> filteredBaseShoutList = filterByVesselAndProgressStatus(baseShoutList);
+
                 List<KerbShout> repLevelShoutList =
-                    generateShouts(
+                    generateRandomShouts(
+                        filteredBaseShoutList,
                         x => (
                             x.type == KerbBaseShout.ShoutType_RepLevel
                             && x.repLevel == getCurrentRepLevel()
@@ -117,10 +120,12 @@ namespace KerbalSNS
                 foreach (KerbShout shout in repLevelShoutList)
                 {
                     updatedShoutList.Add(shout);
+                    KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
 
                 List<KerbShout> outlierRepLevelShoutList =
-                    generateShouts(
+                    generateRandomShouts(
+                        filteredBaseShoutList,
                         x => (
                             x.type == KerbBaseShout.ShoutType_RepLevel
                             && x.repLevel != getCurrentRepLevel()
@@ -130,10 +135,12 @@ namespace KerbalSNS
                 foreach (KerbShout shout in outlierRepLevelShoutList)
                 {
                     updatedShoutList.Add(shout);
+                    KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
 
                 List<KerbShout> otherShoutList =
-                    generateShouts(
+                    generateRandomShouts(
+                        filteredBaseShoutList,
                         x => (
                             x.type != KerbBaseShout.ShoutType_RepLevel
                         ),
@@ -142,15 +149,16 @@ namespace KerbalSNS
                 foreach (KerbShout shout in otherShoutList)
                 {
                     updatedShoutList.Add(shout);
+                    KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
             }
 
             return updatedShoutList;
         }
 
-        private List<KerbShout> generateShouts(Func<KerbBaseShout, bool> predicate, int count, double baseTime)
+        private List<KerbBaseShout> filterByVesselAndProgressStatus(List<KerbBaseShout> referenceBaseShoutList)
         {
-            List<KerbBaseShout> filteredBaseShoutList = baseShoutList.Where(predicate).ToList();
+            List<KerbBaseShout> filteredBaseShoutList = referenceBaseShoutList.ToList();
             filteredBaseShoutList =
                 filteredBaseShoutList.Where(x => KerbalSNSUtils.HasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
             filteredBaseShoutList =
@@ -161,11 +169,20 @@ namespace KerbalSNS
                         || getRandomViableVessel(x) != null
                     ).ToList();
 
-            List<KerbShout> shoutList = new List<KerbShout>();
+            return filteredBaseShoutList;
+        }
+
+        private List<KerbShout> generateRandomShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count, double baseTime)
+        {
+            List<KerbBaseShout> filteredBaseShoutList = referenceBaseShoutList.Where(predicate).ToList();
+
+            int neededShouts = count == -1 ? filteredBaseShoutList.Count : count;
+
+            List <KerbShout> shoutList = new List<KerbShout>();
 
             if (filteredBaseShoutList.Count > 0)
             {
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < neededShouts; i++)
                 {
                     KerbBaseShout baseShout =
                         filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
@@ -205,10 +222,9 @@ namespace KerbalSNS
                     }
 
                     KerbShout shout = createShout(baseShout, postedBy);
-                    shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour
+                    shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour XXX
 
                     shoutList.Add(shout);
-                    KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
 
             }
