@@ -162,7 +162,7 @@ namespace KerbalSNS
             dialogElementsList.Add(new DialogGUIHorizontalLayout(
                 new DialogGUIBase[] {
                     new DialogGUIButton(
-                        "KSC's Random Stories",
+                        "KSC|Stories",
                         delegate {
                             saveLastBrowserDialogPosition();
                             spawnBrowserDialog(BrowserType.Stories);
@@ -205,6 +205,15 @@ namespace KerbalSNS
                 dummyUrl = "https://kerbshouts.com/feed";
             }
 
+            DialogGUITextInput urlTextInput = new DialogGUITextInput(
+                dummyUrl,
+                "",
+                false,
+                50,
+                delegate (String s) { return s; },
+                25
+            );
+
             dialogElementsList.Add(new DialogGUIHorizontalLayout(
                 TextAnchor.MiddleLeft,
                 new DialogGUIBase[] {
@@ -226,18 +235,7 @@ namespace KerbalSNS
                         },
                         true
                     ),
-                    new DialogGUILabel("  " + dummyUrl, true, false),
-                    /*new DialogGUITextInput(
-                        dummyUrl,
-                        "",
-                        false,
-                        50,
-                        delegate (String s) {
-                            s = dummyUrl;
-                            return dummyUrl;
-                        },
-                        25
-                    ),*/
+                    urlTextInput,
                     new DialogGUIButton(
                         "Go",
                         delegate {
@@ -319,7 +317,15 @@ namespace KerbalSNS
                     false,
                     UISkinManager.defaultSkin
                 );
-            addShoutTextInputLocking();
+
+            addTextInputLocking(urlTextInput);
+            TMP_InputField tmp_input = urlTextInput.uiItem.GetComponent<TMP_InputField>();
+            tmp_input.readOnly = true;
+
+            if (browserType == BrowserType.Shouts)
+            {
+                addTextInputLocking(this.shoutTextInput);
+            }
         }
         
         private List<DialogGUIHorizontalLayout> buildStoriesScrollElementsList()
@@ -733,28 +739,28 @@ namespace KerbalSNS
         }
 
         // https://forum.kerbalspaceprogram.com/index.php?/topic/149324-popupdialog-and-the-dialoggui-classes/&do=findComment&comment=3213159
-        private void addShoutTextInputLocking()
+        private void addTextInputLocking(DialogGUITextInput textInput)
         {
-            if (this.shoutTextInput == null)
+            if (textInput == null)
             {
                 return;
             }
 
-            TMP_InputField tmp_input = this.shoutTextInput.uiItem.GetComponent<TMP_InputField>();
+            TMP_InputField tmp_input = textInput.uiItem.GetComponent<TMP_InputField>();
             if (tmp_input != null)
             {
-                tmp_input.onSelect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputSelect));
-                tmp_input.onDeselect.AddListener(new UnityEngine.Events.UnityAction<String>(OnShoutTextInputDeselect));
+                tmp_input.onSelect.AddListener(new UnityEngine.Events.UnityAction<String>(OnTextInputSelect));
+                tmp_input.onDeselect.AddListener(new UnityEngine.Events.UnityAction<String>(OnTextInputDeselect));
             }
         }
 
         // https://forum.kerbalspaceprogram.com/index.php?/topic/151312-preventing-keystroke-fallthrough-on-text-field-usage-between-different-modsinputlockmanager/
-        private void OnShoutTextInputSelect(String s)
+        private void OnTextInputSelect(String s)
         {
             InputLockManager.SetControlLock(ControlTypes.KEYBOARDINPUT, "KerbalSNS");
         }
 
-        private void OnShoutTextInputDeselect(String s)
+        private void OnTextInputDeselect(String s)
         {
             InputLockManager.RemoveControlLock("KerbalSNS");
         }
