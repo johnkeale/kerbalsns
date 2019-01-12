@@ -61,7 +61,14 @@ namespace KerbalSNS
 
         public static bool IsVesselTypeCorrect(Vessel vessel, int vesselType)
         {
-            return vesselType == VesselTypeAny
+            return (
+                    vesselType == VesselTypeAny
+                    && vessel.vesselType != VesselType.Debris
+                    && vessel.vesselType != VesselType.SpaceObject
+                    && vessel.vesselType != VesselType.Unknown
+                    && vessel.vesselType != VesselType.EVA
+                    && vessel.vesselType != VesselType.Flag
+                )
                 || (vessel.vesselType == (VesselType)vesselType);
         }
 

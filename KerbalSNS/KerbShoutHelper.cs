@@ -160,14 +160,13 @@ namespace KerbalSNS
         {
             List<KerbBaseShout> filteredBaseShoutList = referenceBaseShoutList.ToList();
             filteredBaseShoutList =
-                filteredBaseShoutList.Where(x => KerbalSNSUtils.HasAchievedAllProgressReqt(x.progressReqtArray)).ToList();
+                filteredBaseShoutList.Where(
+                    x => KerbalSNSUtils.HasAchievedAllProgressReqt(x.progressReqtArray)
+                ).ToList();
             filteredBaseShoutList =
                 filteredBaseShoutList.Where(
-                    x =>
-                        x.vesselType == KerbalSNSUtils.VesselTypeAny
-                        || x.vesselSituation == null
-                        || getRandomViableVessel(x) != null
-                    ).ToList();
+                    x => hasVesselViable(x)
+                ).ToList();
 
             return filteredBaseShoutList;
         }
@@ -292,7 +291,14 @@ namespace KerbalSNS
             return shout;
         }
 
-        private Vessel getRandomViableVessel(KerbBaseShout baseShout)
+        private bool hasVesselViable(KerbBaseShout baseShout)
+        {
+            return baseShout.vesselType == KerbalSNSUtils.VesselTypeAny
+                || baseShout.vesselSituation == null
+                || getRandomViableVessel(baseShout) != null;
+        }
+
+            private Vessel getRandomViableVessel(KerbBaseShout baseShout)
         {
             List<Vessel> vesselList =
                 FlightGlobals.Vessels.Where(x => isVesselViable(baseShout, x)).ToList();
@@ -304,7 +310,6 @@ namespace KerbalSNS
             {
                 return vesselList[mizer.Next(vesselList.Count)];
             }
-
         }
 
         private bool isVesselViable(KerbBaseShout baseShout, Vessel vessel)
