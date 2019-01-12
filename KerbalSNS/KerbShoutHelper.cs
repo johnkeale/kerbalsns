@@ -112,8 +112,8 @@ namespace KerbalSNS
                     generateRandomShouts(
                         filteredBaseShoutList,
                         x => (
-                            x.type == KerbBaseShout.ShoutType_RepLevel
-                            && x.repLevel == getCurrentRepLevel()
+                            x.type.Equals(KerbBaseShout.ShoutType_RepLevel)
+                            && x.repLevel.Equals(getCurrentRepLevel())
                         ),
                         repLevelShoutCount,
                         now);
@@ -127,8 +127,8 @@ namespace KerbalSNS
                     generateRandomShouts(
                         filteredBaseShoutList,
                         x => (
-                            x.type == KerbBaseShout.ShoutType_RepLevel
-                            && x.repLevel != getCurrentRepLevel()
+                            x.type.Equals(KerbBaseShout.ShoutType_RepLevel)
+                            && !x.repLevel.Equals(getCurrentRepLevel())
                         ),
                         outlierRepLevelShoutCount,
                         now);
@@ -142,7 +142,7 @@ namespace KerbalSNS
                     generateRandomShouts(
                         filteredBaseShoutList,
                         x => (
-                            x.type != KerbBaseShout.ShoutType_RepLevel
+                            !x.type.Equals(KerbBaseShout.ShoutType_RepLevel)
                         ),
                         neededShoutCount - repLevelShoutCount,
                         now);
@@ -189,15 +189,15 @@ namespace KerbalSNS
 
                     KerbShout.Acct postedBy = null;
 
-                    if (baseShout.posterType == KerbBaseShout.PosterType_Specific)
+                    if (baseShout.posterType.Equals(KerbBaseShout.PosterType_Specific))
                     {
                         KerbalSNSScenario.Instance.SaveShoutAcct(baseShout.specificPoster);
                         postedBy = baseShout.specificPoster;
                     }
                     else
                     {
-                        if (baseShout.posterType == KerbBaseShout.PosterType_Any
-                            || baseShout.posterType == KerbBaseShout.PosterType_LayKerbal)
+                        if (baseShout.posterType.Equals(KerbBaseShout.PosterType_Any)
+                            || baseShout.posterType.Equals(KerbBaseShout.PosterType_LayKerbal))
                         {
                             postedBy = new KerbShout.Acct();
                             postedBy.name = "TODO";
@@ -205,17 +205,17 @@ namespace KerbalSNS
                             postedBy.fullname = KerbalSNSUtils.RandomLayKerbalName();
                             postedBy.username = "@" + makeLikeUsername(postedBy.fullname);
                         }
-                        else if (baseShout.posterType == KerbBaseShout.PosterType_VesselCrew
-                            || baseShout.posterType == KerbBaseShout.PosterType_KSCEmployee)
+                        else if (baseShout.posterType.Equals(KerbBaseShout.PosterType_VesselCrew)
+                            || baseShout.posterType.Equals(KerbBaseShout.PosterType_KSCEmployee))
                         {
-                            String fullname = baseShout.posterType == KerbBaseShout.PosterType_VesselCrew ?
+                            String fullname = baseShout.posterType.Equals(KerbBaseShout.PosterType_VesselCrew) ?
                                 KerbalSNSUtils.RandomActiveCrewKerbalName() :
                                 KerbalSNSUtils.RandomLayKerbalName();
 
                             ensureKSCShoutAcctExists(fullname);
                             postedBy = KerbalSNSScenario.Instance.FindShoutAcct(fullname);
                         }
-                        else if (baseShout.posterType == KerbBaseShout.PosterType_KSC)
+                        else if (baseShout.posterType.Equals(KerbBaseShout.PosterType_KSC))
                         {
                             postedBy = KerbShout.Acct.KSC_OFFICIAL;
                         }
