@@ -115,10 +115,10 @@ namespace KerbalSNS
                             x.type.Equals(KerbBaseShout.ShoutType_RepLevel)
                             && x.repLevel.Equals(getCurrentRepLevel())
                         ),
-                        repLevelShoutCount,
-                        now);
+                        repLevelShoutCount);
                 foreach (KerbShout shout in repLevelShoutList)
                 {
+                    shout.postedTime = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour XXX
                     updatedShoutList.Add(shout);
                     KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
@@ -130,10 +130,10 @@ namespace KerbalSNS
                             x.type.Equals(KerbBaseShout.ShoutType_RepLevel)
                             && !x.repLevel.Equals(getCurrentRepLevel())
                         ),
-                        outlierRepLevelShoutCount,
-                        now);
+                        outlierRepLevelShoutCount);
                 foreach (KerbShout shout in outlierRepLevelShoutList)
                 {
+                    shout.postedTime = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1;
                     updatedShoutList.Add(shout);
                     KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
@@ -144,10 +144,10 @@ namespace KerbalSNS
                         x => (
                             !x.type.Equals(KerbBaseShout.ShoutType_RepLevel)
                         ),
-                        neededShoutCount - repLevelShoutCount,
-                        now);
+                        neededShoutCount - repLevelShoutCount);
                 foreach (KerbShout shout in otherShoutList)
                 {
+                    shout.postedTime = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1;
                     updatedShoutList.Add(shout);
                     KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
@@ -171,7 +171,7 @@ namespace KerbalSNS
             return filteredBaseShoutList;
         }
 
-        private List<KerbShout> generateRandomShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count, double baseTime)
+        private List<KerbShout> generateRandomShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count)
         {
             List<KerbBaseShout> filteredBaseShoutList = referenceBaseShoutList.Where(predicate).ToList();
 
@@ -221,7 +221,6 @@ namespace KerbalSNS
                     }
 
                     KerbShout shout = createShout(baseShout, postedBy);
-                    shout.postedTime = baseTime - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour XXX
 
                     shoutList.Add(shout);
                 }
