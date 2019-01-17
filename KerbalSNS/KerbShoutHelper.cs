@@ -60,16 +60,9 @@ namespace KerbalSNS
             return shoutList;
         }
 
-        public KerbShout GenerateShout(String text)
+        public KerbShout GenerateKSCShout(String text)
         {
-            KerbBaseShout baseShout = new KerbBaseShout();
-
-            baseShout.name = "TODO";
-            baseShout.repLevel = KerbBaseShout.RepLevel_Any;
-            baseShout.type = KerbBaseShout.ShoutType_Random;
-            baseShout.text = text;
-
-            baseShout.posterType = KerbBaseShout.PosterType_KSC;
+            String posterType = KerbBaseShout.PosterType_KSC;
             KerbShout.Acct postedBy = KerbShout.Acct.KSC_OFFICIAL;
 
             if (FlightGlobals.ActiveVessel != null)
@@ -77,12 +70,25 @@ namespace KerbalSNS
                 String fullname = KerbalSNSUtils.RandomVesselCrewKerbalName(FlightGlobals.ActiveVessel);
                 if (fullname != null)
                 {
-                    baseShout.posterType = KerbBaseShout.PosterType_VesselCrew;
+                    posterType = KerbBaseShout.PosterType_VesselCrew;
 
                     ensureKSCShoutAcctExists(fullname);
                     postedBy = KerbalSNSScenario.Instance.FindShoutAcct(fullname);
                 }
             }
+
+            return generateShout(KerbBaseShout.RepLevel_Any, KerbBaseShout.ShoutType_Random, text, posterType, postedBy);
+        }
+
+        private KerbShout generateShout(String repLevel, String shoutType, String text, String posterType, KerbShout.Acct postedBy)
+        {
+            KerbBaseShout baseShout = new KerbBaseShout();
+
+            baseShout.name = "TODO";
+            baseShout.repLevel = repLevel;
+            baseShout.type = shoutType;
+            baseShout.text = text;
+            baseShout.posterType = posterType;
 
             KerbShout shout = createShout(baseShout, postedBy);
             return shout;
@@ -228,6 +234,28 @@ namespace KerbalSNS
             }
 
             return shoutList;
+        }
+
+        private List<KerbBaseShout> generateRandomBaseShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count)
+        {
+            List<KerbBaseShout> filteredBaseShoutList = referenceBaseShoutList.Where(predicate).ToList();
+            int neededShouts = count == -1 ? filteredBaseShoutList.Count : count;
+
+            List <KerbBaseShout> randomBaseShoutList = new List<KerbBaseShout>();
+
+            if (filteredBaseShoutList.Count > 0)
+            {
+                for (int i = 0; i < neededShouts; i++)
+                {
+                    KerbBaseShout baseShout =
+                        filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
+					filteredBaseShoutList.Remove(baseShout);
+
+                    randomBaseShoutList.Add(baseShout);
+                }
+            }
+
+            return randomBaseShoutList;
         }
 
         private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)

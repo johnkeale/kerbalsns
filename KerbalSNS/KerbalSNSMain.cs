@@ -547,7 +547,7 @@ namespace KerbalSNS
                     new DialogGUIButton(
                         "Shout!",
                         delegate {
-                            KerbShout shout = KerbShoutHelper.Instance.GenerateShout(enteredShout);
+                            KerbShout shout = KerbShoutHelper.Instance.GenerateKSCShout(enteredShout);
                             KerbalSNSScenario.Instance.RegisterShout(shout);
 
                             saveLastBrowserDialogPosition();
