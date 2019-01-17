@@ -27,6 +27,7 @@ namespace KerbalSNS
 		
         public const String ShoutType_Random = "random";
         public const String ShoutType_RepLevel = "repLevel";
+        public const String ShoutType_GameEvent = "gameEvent";
         public const String ShoutType_KSCNews = "kscNews";
         public const String ShoutType_NewsReaction = "newsReaction";
 
