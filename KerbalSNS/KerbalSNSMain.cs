@@ -67,6 +67,9 @@ namespace KerbalSNS
 
             KerbStoryHelper.Instance.LoadBaseStoryList();
             KerbShoutHelper.Instance.LoadBaseShoutList();
+
+            KerbShoutHelper.Instance.AddGameEventsCallbacks();
+
         }
 
         public void OnDestroy()
@@ -81,6 +84,8 @@ namespace KerbalSNS
             GameEvents.onShowUI.Remove(onShowUI);
             GameEvents.onGamePause.Remove(onGamePause);
             GameEvents.onGameUnpause.Remove(onGameUnpause);
+
+            KerbShoutHelper.Instance.RemoveGameEventsCallbacks();
 
             destroyLauncher();
         }

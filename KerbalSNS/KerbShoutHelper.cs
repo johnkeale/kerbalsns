@@ -1,8 +1,12 @@
-﻿using System;
+﻿using KSP.UI.Screens;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using UnityEngine;
+using Upgradeables;
+using static GameEvents;
 
 namespace KerbalSNS
 {
@@ -442,5 +446,107 @@ namespace KerbalSNS
             foreach (KerbShout shout in shoutList) KerbalSNSScenario.Instance.DeleteShout(shout);
             updateShoutsIfNeeded(shoutList);
         }
+
+        #region GameEvent methods
+
+        public void AddGameEventsCallbacks()
+        {
+            GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
+            GameEvents.OnCrewmemberSacked.Add(KerbShoutHelper.Instance.OnCrewmemberSacked);
+            GameEvents.OnCrewmemberLeftForDead.Add(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
+        }
+
+        public void RemoveGameEventsCallbacks()
+        {
+            GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
+            GameEvents.OnCrewmemberSacked.Remove(KerbShoutHelper.Instance.OnCrewmemberSacked);
+            GameEvents.OnCrewmemberLeftForDead.Remove(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
+        }
+
+        public void OnCrewmemberHired(ProtoCrewMember protoCrewMember, int num)
+        {
+            List<KerbBaseShout> filteredBaseShoutList = 
+				generateRandomBaseShouts(
+					this.baseShoutList,
+                    x => (
+                        x.gameEvent != null && x.gameEvent.Equals("OnCrewmemberHired")
+                        && x.posterType.Equals(KerbBaseShout.PosterType_VesselCrew)
+                        && x.repLevel == getCurrentRepLevel()
+                    ),
+					1);
+            
+            if (filteredBaseShoutList.Count() <= 0)
+            {
+                return;
+            }
+
+            KerbBaseShout baseShout = filteredBaseShoutList.FirstOrDefault();
+
+            ensureKSCShoutAcctExists(protoCrewMember.name);
+            KerbShout.Acct postedBy = KerbalSNSScenario.Instance.FindShoutAcct(protoCrewMember.name);
+
+            KerbShout shout = createShout(baseShout, postedBy);
+            shout.postedTime = Planetarium.GetUniversalTime();
+
+			KerbalSNSScenario.Instance.RegisterShout(shout);
+        }
+		
+        public void OnCrewmemberSacked(ProtoCrewMember protoCrewMember, int num)
+        {
+			List<KerbBaseShout> filteredBaseShoutList =
+				generateRandomBaseShouts(
+					this.baseShoutList,
+					x => (
+                        x.gameEvent != null && x.gameEvent.Equals("OnCrewmemberSacked")
+                        && x.posterType.Equals(KerbBaseShout.PosterType_VesselCrew)
+                        && x.repLevel == getCurrentRepLevel()
+                    ),
+					1);
+
+            if (filteredBaseShoutList.Count() <= 0)
+            {
+                return;
+            }
+			
+            KerbBaseShout baseShout = filteredBaseShoutList.FirstOrDefault();
+
+            ensureKSCShoutAcctExists(protoCrewMember.name);
+            KerbShout.Acct postedBy = KerbalSNSScenario.Instance.FindShoutAcct(protoCrewMember.name);
+
+            KerbShout shout = createShout(baseShout, postedBy);
+            shout.postedTime = Planetarium.GetUniversalTime();
+
+			KerbalSNSScenario.Instance.RegisterShout(shout);
+        }
+		
+        public void OnCrewmemberLeftForDead(ProtoCrewMember protoCrewMember, int num)
+        {
+			List<KerbBaseShout> filteredBaseShoutList =
+				generateRandomBaseShouts(
+					this.baseShoutList,
+					x => (
+                        x.gameEvent != null && x.gameEvent.Equals("OnCrewmemberLeftForDead")
+                        && x.posterType.Equals(KerbBaseShout.PosterType_VesselCrew)
+                        && x.repLevel == getCurrentRepLevel()
+                    ),
+					1);
+
+            if (filteredBaseShoutList.Count() <= 0)
+            {
+                return;
+            }
+			
+            KerbBaseShout baseShout = filteredBaseShoutList.FirstOrDefault();
+
+            ensureKSCShoutAcctExists(protoCrewMember.name);
+            KerbShout.Acct postedBy = KerbalSNSScenario.Instance.FindShoutAcct(protoCrewMember.name);
+
+            KerbShout shout = createShout(baseShout, postedBy);
+            shout.postedTime = Planetarium.GetUniversalTime();
+			
+			KerbalSNSScenario.Instance.RegisterShout(shout);
+        }
+
+        #endregion
     }
 }
