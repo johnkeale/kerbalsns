@@ -479,6 +479,7 @@ namespace KerbalSNS
 
         public void AddGameEventsCallbacks()
         {
+            GameEvents.OnOrbitalSurveyCompleted.Add(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
             GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Add(KerbShoutHelper.Instance.OnCrewmemberSacked);
             GameEvents.OnCrewmemberLeftForDead.Add(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
@@ -486,9 +487,34 @@ namespace KerbalSNS
 
         public void RemoveGameEventsCallbacks()
         {
+            GameEvents.OnOrbitalSurveyCompleted.Remove(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
             GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Remove(KerbShoutHelper.Instance.OnCrewmemberSacked);
             GameEvents.OnCrewmemberLeftForDead.Remove(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
+        }
+
+        public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
+        {
+            List<KerbShout> filteredBaseShoutList =
+                generateRandomShouts(
+                    this.baseShoutList,
+                    x => (
+                        x.gameEvent != null && x.gameEvent.Equals("OnOrbitalSurveyCompleted")
+                        && KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
+                        && KerbalSNSUtils.DoesVesselSituationMatch(vessel, body, x.vesselSituation)
+                        && x.repLevel == getCurrentRepLevel()
+                    ),
+                    1);
+            
+            if (filteredBaseShoutList.Count() <= 0)
+            {
+                return;
+            }
+
+            KerbShout shout = filteredBaseShoutList.FirstOrDefault();
+            shout.postedTime = Planetarium.GetUniversalTime();
+
+            KerbalSNSScenario.Instance.RegisterShout(shout);
         }
 
         public void OnCrewmemberHired(ProtoCrewMember protoCrewMember, int num)
