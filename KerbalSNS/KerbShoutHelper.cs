@@ -177,6 +177,10 @@ namespace KerbalSNS
                 filteredBaseShoutList.Where(
                     x => hasVesselViable(x)
                 ).ToList();
+            filteredBaseShoutList =
+                filteredBaseShoutList.Where(
+                    x => x.gameEvent == null
+                ).ToList();
 
             return filteredBaseShoutList;
         }
@@ -357,7 +361,7 @@ namespace KerbalSNS
                 || getRandomViableVessel(baseShout) != null;
         }
 
-            private Vessel getRandomViableVessel(KerbBaseShout baseShout)
+        private Vessel getRandomViableVessel(KerbBaseShout baseShout)
         {
             List<Vessel> vesselList =
                 FlightGlobals.Vessels.Where(x => isVesselViable(baseShout, x)).ToList();
