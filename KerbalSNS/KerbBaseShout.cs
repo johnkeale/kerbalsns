@@ -32,6 +32,7 @@ namespace KerbalSNS
         public const String ShoutType_NewsReaction = "newsReaction";
 
         public String name { get; set; }
+        public String author { get; set; }
         public String repLevel { get; set; }
         public String posterType { get; set; }
         public Acct specificPoster { get; set; }
@@ -49,6 +50,12 @@ namespace KerbalSNS
             if (node.HasValue("name"))
             {
                 this.name = node.GetValue("name");
+            }
+
+            this.author = null;
+            if (node.HasValue("author"))
+            {
+                this.author = node.GetValue("author");
             }
 
             this.repLevel = RepLevel_Any;
@@ -152,6 +159,15 @@ namespace KerbalSNS
             ConfigNode node = new ConfigNode(NODE_NAME);
 
             node.SetValue("name", this.name, true);
+
+            if (this.author != null)
+            {
+                node.SetValue("author", this.author, true);
+            }
+            else
+            {
+                node.SetValue("author", "");
+            }
 
             node.SetValue("repLevel", this.repLevel, true);
             node.SetValue("posterType", this.posterType, true);

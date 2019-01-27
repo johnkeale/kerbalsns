@@ -17,6 +17,7 @@ namespace KerbalSNS
         }
 
         public String name { get; set; }
+        public String author { get; set; }
         public StoryType type { get; set; }
         public String text { get; set; }
         public String[] progressReqtArray { get; set; }
@@ -30,6 +31,12 @@ namespace KerbalSNS
             if (node.HasValue("name"))
             {
                 this.name = node.GetValue("name");
+            }
+
+            this.author = null;
+            if (node.HasValue("author"))
+            {
+                this.author = node.GetValue("author");
             }
 
             this.type = StoryType.Random;
@@ -116,6 +123,15 @@ namespace KerbalSNS
             ConfigNode node = new ConfigNode(NODE_NAME);
 
             node.SetValue("name", this.name, true);
+
+            if (this.author != null)
+            {
+                node.SetValue("author", this.author, true);
+            }
+            else
+            {
+                node.SetValue("author", "");
+            }
 
             switch (this.type)
             {
