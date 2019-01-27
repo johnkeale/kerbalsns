@@ -74,6 +74,11 @@ namespace KerbalSNS
 
         public static bool DoesVesselSituationMatch(Vessel vessel, String vesselSituation)
         {
+            if (vesselSituation == null)
+            {
+                return true;
+            }
+
             CelestialBody body =
                 FlightGlobals.Bodies.FirstOrDefault(b => vesselSituation.StartsWith(b.name));
             return DoesVesselSituationMatch(vessel, body, vesselSituation);
