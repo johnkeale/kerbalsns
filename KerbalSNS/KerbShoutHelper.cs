@@ -500,7 +500,6 @@ namespace KerbalSNS
         public void AddGameEventsCallbacks()
         {
             GameEvents.OnOrbitalSurveyCompleted.Add(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
-            GameEvents.onCommandSeatInteraction.Add(KerbShoutHelper.Instance.onCommandSeatInteraction);
             GameEvents.onFlagPlant.Add(KerbShoutHelper.Instance.onFlagPlant);
             GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Add(KerbShoutHelper.Instance.OnCrewmemberSacked);
@@ -510,7 +509,6 @@ namespace KerbalSNS
         public void RemoveGameEventsCallbacks()
         {
             GameEvents.OnOrbitalSurveyCompleted.Remove(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
-            GameEvents.onCommandSeatInteraction.Remove(KerbShoutHelper.Instance.onCommandSeatInteraction);
             GameEvents.onFlagPlant.Remove(KerbShoutHelper.Instance.onFlagPlant);
             GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Remove(KerbShoutHelper.Instance.OnCrewmemberSacked);
@@ -531,34 +529,6 @@ namespace KerbalSNS
             if (shout != null)
             {
 				KerbalSNSScenario.Instance.RegisterShout(shout);
-            }
-        }
-
-        public void onCommandSeatInteraction(KerbalEVA kerbalEVA, bool didBoardVessel)
-        {
-            KerbShout shout = null;
-            if (didBoardVessel)
-            {
-                Vessel boardedVessel = kerbalEVA.vessel;
-                shout = generateRandomGameEventShout(
-                    x => (
-                        x.gameEvent != null && x.gameEvent.Equals("onCommandSeatInteraction")
-                        && KerbalSNSUtils.IsVesselTypeCorrect(boardedVessel, x.vesselType)
-                        && KerbalSNSUtils.DoesVesselSituationMatch(boardedVessel, x.vesselSituation)
-                        && x.repLevel == getCurrentRepLevel()
-                    )
-                );
-            }
-            else
-            {
-                Vessel kerbal = kerbalEVA.vessel;
-                ProtoCrewMember protoCrewMember = kerbal.GetVesselCrew().FirstOrDefault();
-                shout = generateRandomGameEventCrewShout("onCommandSeatInteraction", protoCrewMember);
-            }
-
-            if (shout != null)
-            {
-                KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
 
