@@ -500,7 +500,8 @@ namespace KerbalSNS
         public void AddGameEventsCallbacks()
         {
             GameEvents.OnOrbitalSurveyCompleted.Add(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
-            GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
+            GameEvents.onFlagPlant.Add(KerbShoutHelper.Instance.onFlagPlant);
+			GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Add(KerbShoutHelper.Instance.OnCrewmemberSacked);
             GameEvents.OnCrewmemberLeftForDead.Add(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
         }
@@ -508,7 +509,8 @@ namespace KerbalSNS
         public void RemoveGameEventsCallbacks()
         {
             GameEvents.OnOrbitalSurveyCompleted.Remove(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
-            GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
+            GameEvents.onFlagPlant.Remove(KerbShoutHelper.Instance.onFlagPlant);
+			GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Remove(KerbShoutHelper.Instance.OnCrewmemberSacked);
             GameEvents.OnCrewmemberLeftForDead.Remove(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
         }
@@ -527,6 +529,23 @@ namespace KerbalSNS
             if (shout != null)
             {
 				KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void onFlagPlant(Vessel vessel)
+        {
+            CelestialBody body = vessel.mainBody;
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("onFlagPlant")
+                    && x.vesselSituation.StartsWith(body.name)
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
 
