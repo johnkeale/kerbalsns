@@ -266,6 +266,22 @@ namespace KerbalSNS
             return randomBaseShoutList;
         }
 
+        private KerbShout generateRandomGameEventShout(Func<KerbBaseShout, bool> predicate)
+        {
+            List<KerbShout> filteredShoutList =
+                generateRandomShouts(this.baseShoutList, predicate, 1);
+
+            if (filteredShoutList.Count() <= 0)
+            {
+                return null;
+            }
+
+            KerbShout shout = filteredShoutList.FirstOrDefault();
+            shout.postedTime = Planetarium.GetUniversalTime();
+			
+            return shout;
+        }
+
         private KerbShout generateRandomGameEventCrewShout(String gameEvent, ProtoCrewMember protoCrewMember)
         {
             List<KerbBaseShout> filteredBaseShoutList =
@@ -499,26 +515,19 @@ namespace KerbalSNS
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
         {
-            List<KerbShout> filteredBaseShoutList =
-                generateRandomShouts(
-                    this.baseShoutList,
-                    x => (
-                        x.gameEvent != null && x.gameEvent.Equals("OnOrbitalSurveyCompleted")
-                        && KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
-                        && KerbalSNSUtils.DoesVesselSituationMatch(vessel, body, x.vesselSituation)
-                        && x.repLevel == getCurrentRepLevel()
-                    ),
-                    1);
-            
-            if (filteredBaseShoutList.Count() <= 0)
+            KerbShout shout = generateRandomGameEventShout(
+				x => (
+					x.gameEvent != null && x.gameEvent.Equals("OnOrbitalSurveyCompleted")
+					&& KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
+					&& KerbalSNSUtils.DoesVesselSituationMatch(vessel, body, x.vesselSituation)
+					&& x.repLevel == getCurrentRepLevel()
+				)
+			);
+
+            if (shout != null)
             {
-                return;
+				KerbalSNSScenario.Instance.RegisterShout(shout);
             }
-
-            KerbShout shout = filteredBaseShoutList.FirstOrDefault();
-            shout.postedTime = Planetarium.GetUniversalTime();
-
-            KerbalSNSScenario.Instance.RegisterShout(shout);
         }
 
         public void OnCrewmemberHired(ProtoCrewMember protoCrewMember, int num)
