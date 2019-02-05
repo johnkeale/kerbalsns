@@ -43,6 +43,7 @@ namespace KerbalSNS
         public int vesselType { get; set; }
         public String vesselSituation { get; set; }
         public String gameEvent { get; set; }
+        public ConfigNode gameEventSpecifics { get; set; }
 
         public virtual void LoadFromConfigNode(ConfigNode node)
         {
@@ -148,9 +149,14 @@ namespace KerbalSNS
             }
 
             this.gameEvent = null;
+            this.gameEventSpecifics = null;
             if (node.HasValue("gameEvent"))
             {
                 this.gameEvent = node.GetValue("gameEvent");
+                if (node.HasNode("GAMEEVENTSPECIFICS"))
+                {
+                    this.gameEventSpecifics = node.GetNode("GAMEEVENTSPECIFICS");
+                }
             }
         }
 
@@ -240,6 +246,10 @@ namespace KerbalSNS
             if (this.gameEvent != null)
             {
                 node.SetValue("gameEvent", this.gameEvent, true);
+                if (this.gameEventSpecifics != null)
+                {
+                    node.AddNode("GAMEEVENTSPECIFICS", this.gameEventSpecifics);
+                }
             }
             else
             {

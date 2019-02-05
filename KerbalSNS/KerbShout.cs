@@ -27,6 +27,7 @@ namespace KerbalSNS
             this.vesselType = baseShout.vesselType;
             this.vesselSituation = baseShout.vesselSituation;
             this.gameEvent = baseShout.gameEvent;
+            this.gameEventSpecifics = baseShout.gameEventSpecifics;
         }
 
         public override void LoadFromConfigNode(ConfigNode node)
