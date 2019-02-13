@@ -524,7 +524,6 @@ namespace KerbalSNS
             GameEvents.OnScienceRecieved.Add(KerbShoutHelper.Instance.OnScienceRecieved);
             GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Add(KerbShoutHelper.Instance.OnCrewmemberSacked);
-            GameEvents.OnCrewmemberLeftForDead.Add(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -535,7 +534,6 @@ namespace KerbalSNS
             GameEvents.OnScienceRecieved.Remove(KerbShoutHelper.Instance.OnScienceRecieved);
             GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Remove(KerbShoutHelper.Instance.OnCrewmemberSacked);
-            GameEvents.OnCrewmemberLeftForDead.Remove(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -643,15 +641,6 @@ namespace KerbalSNS
         public void OnCrewmemberSacked(ProtoCrewMember protoCrewMember, int num)
         {
             KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberSacked", protoCrewMember);
-            if (shout != null)
-            {
-                KerbalSNSScenario.Instance.RegisterShout(shout);
-            }
-        }
-		
-        public void OnCrewmemberLeftForDead(ProtoCrewMember protoCrewMember, int num)
-        {
-            KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberLeftForDead", protoCrewMember);
             if (shout != null)
             {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
