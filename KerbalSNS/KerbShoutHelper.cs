@@ -187,6 +187,11 @@ namespace KerbalSNS
 
         private List<KerbShout> generateRandomShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count)
         {
+            return generateRandomShouts(referenceBaseShoutList, predicate, count, null);
+        }
+
+        private List<KerbShout> generateRandomShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count, Vessel vessel)
+        {
             List<KerbBaseShout> filteredBaseShoutList = referenceBaseShoutList.Where(predicate).ToList();
 
             int neededShouts = count == -1 ? filteredBaseShoutList.Count : count;
@@ -234,7 +239,7 @@ namespace KerbalSNS
                         }
                     }
 
-                    KerbShout shout = createShout(baseShout, postedBy);
+                    KerbShout shout = createShout(baseShout, postedBy, vessel);
 
                     shoutList.Add(shout);
                 }
@@ -268,8 +273,13 @@ namespace KerbalSNS
 
         private KerbShout generateRandomGameEventShout(Func<KerbBaseShout, bool> predicate)
         {
+            return generateRandomGameEventShout(predicate, null);
+        }
+
+        private KerbShout generateRandomGameEventShout(Func<KerbBaseShout, bool> predicate, Vessel vessel)
+        {
             List<KerbShout> filteredShoutList =
-                generateRandomShouts(this.baseShoutList, predicate, 1);
+                generateRandomShouts(this.baseShoutList, predicate, 1, vessel);
 
             if (filteredShoutList.Count() <= 0)
             {
@@ -332,6 +342,11 @@ namespace KerbalSNS
 
         private KerbShout createShout(KerbBaseShout baseShout, KerbShout.Acct postedBy)
         {
+            return createShout(baseShout, postedBy, null);
+        }
+
+        private KerbShout createShout(KerbBaseShout baseShout, KerbShout.Acct postedBy, Vessel vessel)
+        {
             KerbShout shout = new KerbShout(baseShout);
 
             shout.postedId = "TODO";
@@ -344,7 +359,11 @@ namespace KerbalSNS
 
             if (baseShout.text.Contains("%v") || baseShout.text.Contains("%k"))
             {
-                Vessel vessel = getRandomViableVessel(baseShout);
+                if (vessel == null)
+                {
+                    vessel = getRandomViableVessel(baseShout);
+                }
+
                 shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
 
                 int kerbalCount = Regex.Matches(baseShout.text, "%k").Count;
