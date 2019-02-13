@@ -520,6 +520,8 @@ namespace KerbalSNS
         {
             GameEvents.OnOrbitalSurveyCompleted.Add(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
             GameEvents.onFlagPlant.Add(KerbShoutHelper.Instance.onFlagPlant);
+			GameEvents.OnExperimentDeployed.Add(KerbShoutHelper.Instance.OnExperimentDeployed);
+            GameEvents.OnScienceRecieved.Add(KerbShoutHelper.Instance.OnScienceRecieved);
             GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Add(KerbShoutHelper.Instance.OnCrewmemberSacked);
             GameEvents.OnCrewmemberLeftForDead.Add(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
@@ -529,6 +531,8 @@ namespace KerbalSNS
         {
             GameEvents.OnOrbitalSurveyCompleted.Remove(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
             GameEvents.onFlagPlant.Remove(KerbShoutHelper.Instance.onFlagPlant);
+			GameEvents.OnExperimentDeployed.Remove(KerbShoutHelper.Instance.OnExperimentDeployed);
+            GameEvents.OnScienceRecieved.Remove(KerbShoutHelper.Instance.OnScienceRecieved);
             GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Remove(KerbShoutHelper.Instance.OnCrewmemberSacked);
             GameEvents.OnCrewmemberLeftForDead.Remove(KerbShoutHelper.Instance.OnCrewmemberLeftForDead);
@@ -560,6 +564,65 @@ namespace KerbalSNS
                     && x.vesselSituation.StartsWith(body.name)
                     && x.repLevel == getCurrentRepLevel()
                 )
+            );
+
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnExperimentDeployed(ScienceData data)
+        {
+            String[] dataSubjectID = data.subjectID.Split('@'); 
+            String scienceType = dataSubjectID[0];
+            String situation = dataSubjectID[1];
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnExperimentDeployed")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("scienceType") 
+                            && x.gameEventSpecifics.GetValue("scienceType").Equals(scienceType)
+                            && x.gameEventSpecifics.HasValue("situation")
+                            && x.gameEventSpecifics.GetValue("situation").Equals(situation)
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnScienceRecieved(float science, ScienceSubject subj, ProtoVessel protoVessel, bool flag)
+        {
+            Vessel vessel = protoVessel.vesselRef;
+
+            String[] dataSubjectID = subj.id.Split('@');
+            String scienceType = dataSubjectID[0];
+            String situation = dataSubjectID[1];
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnScienceRecieved")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("scienceType")
+                            && x.gameEventSpecifics.GetValue("scienceType").Equals(scienceType)
+                            && x.gameEventSpecifics.HasValue("situation")
+                            && x.gameEventSpecifics.GetValue("situation").Equals(situation)
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                ),
+                vessel
             );
 
             if (shout != null)
