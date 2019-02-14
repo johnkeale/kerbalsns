@@ -310,10 +310,10 @@ namespace KerbalSNS
                     shout.postedText = shout.postedText.Replace("%k" + kerbalIndex, shoutAcct.username);
                     kerbalIndex++;
                 }
-
-                shout.postedText =
-                    Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
             }
+
+            shout.postedText =
+                Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
 
             return shout;
         }
@@ -325,7 +325,7 @@ namespace KerbalSNS
                 || getRandomViableVessel(baseShout) != null;
         }
 
-            private Vessel getRandomViableVessel(KerbBaseShout baseShout)
+        private Vessel getRandomViableVessel(KerbBaseShout baseShout)
         {
             List<Vessel> vesselList =
                 FlightGlobals.Vessels.Where(x => isVesselViable(baseShout, x)).ToList();
