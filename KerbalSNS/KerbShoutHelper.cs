@@ -524,6 +524,8 @@ namespace KerbalSNS
             GameEvents.OnScienceRecieved.Add(KerbShoutHelper.Instance.OnScienceRecieved);
             GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Add(KerbShoutHelper.Instance.OnCrewmemberSacked);
+            GameEvents.OnKSCStructureCollapsed.Add(KerbShoutHelper.Instance.OnKSCStructureCollapsed);
+            GameEvents.OnKSCStructureRepaired.Add(KerbShoutHelper.Instance.OnKSCStructureRepaired);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -534,6 +536,8 @@ namespace KerbalSNS
             GameEvents.OnScienceRecieved.Remove(KerbShoutHelper.Instance.OnScienceRecieved);
             GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Remove(KerbShoutHelper.Instance.OnCrewmemberSacked);
+            GameEvents.OnKSCStructureCollapsed.Remove(KerbShoutHelper.Instance.OnKSCStructureCollapsed);
+            GameEvents.OnKSCStructureRepaired.Remove(KerbShoutHelper.Instance.OnKSCStructureRepaired);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -641,6 +645,56 @@ namespace KerbalSNS
         public void OnCrewmemberSacked(ProtoCrewMember protoCrewMember, int num)
         {
             KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberSacked", protoCrewMember);
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnKSCStructureCollapsed(DestructibleBuilding bldg)
+        {
+            String[] idComponents = bldg.id.Split('/');
+            String facility = idComponents[1];
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnKSCStructureCollapsed")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("facility")
+                            && x.gameEventSpecifics.GetValue("facility").Equals(facility)
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnKSCStructureRepaired(DestructibleBuilding bldg)
+        {
+            String[] idComponents = bldg.id.Split('/');
+            String facility = idComponents[1];
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnKSCStructureRepaired")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("facility")
+                            && x.gameEventSpecifics.GetValue("facility").Equals(facility)
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
             if (shout != null)
             {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
