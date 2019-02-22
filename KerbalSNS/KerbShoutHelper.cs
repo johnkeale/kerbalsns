@@ -524,6 +524,7 @@ namespace KerbalSNS
             GameEvents.OnScienceRecieved.Add(KerbShoutHelper.Instance.OnScienceRecieved);
             GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Add(KerbShoutHelper.Instance.OnCrewmemberSacked);
+            GameEvents.onVesselRecoveryProcessing.Add(KerbShoutHelper.Instance.onVesselRecoveryProcessing);
             GameEvents.OnKSCStructureCollapsed.Add(KerbShoutHelper.Instance.OnKSCStructureCollapsed);
             GameEvents.OnKSCStructureRepaired.Add(KerbShoutHelper.Instance.OnKSCStructureRepaired);
         }
@@ -536,6 +537,7 @@ namespace KerbalSNS
             GameEvents.OnScienceRecieved.Remove(KerbShoutHelper.Instance.OnScienceRecieved);
             GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Remove(KerbShoutHelper.Instance.OnCrewmemberSacked);
+            GameEvents.onVesselRecoveryProcessing.Remove(KerbShoutHelper.Instance.onVesselRecoveryProcessing);
             GameEvents.OnKSCStructureCollapsed.Remove(KerbShoutHelper.Instance.OnKSCStructureCollapsed);
             GameEvents.OnKSCStructureRepaired.Remove(KerbShoutHelper.Instance.OnKSCStructureRepaired);
         }
@@ -647,6 +649,25 @@ namespace KerbalSNS
             KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberSacked", protoCrewMember);
             if (shout != null)
             {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void onVesselRecoveryProcessing(ProtoVessel protoVessel, MissionRecoveryDialog dialog, float recoveredFundsPercentage)
+        {
+            Vessel vessel = protoVessel.vesselRef;
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("onVesselRecoveryProcessing")
+                    && x.repLevel == getCurrentRepLevel()
+                ),
+                vessel
+            );
+
+            if (shout != null)
+            {
+                // TODO use recoveredFundsPercentage
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
