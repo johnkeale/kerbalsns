@@ -527,6 +527,7 @@ namespace KerbalSNS
             GameEvents.onVesselRecoveryProcessing.Add(KerbShoutHelper.Instance.onVesselRecoveryProcessing);
             GameEvents.OnKSCStructureCollapsed.Add(KerbShoutHelper.Instance.OnKSCStructureCollapsed);
             GameEvents.OnKSCStructureRepaired.Add(KerbShoutHelper.Instance.OnKSCStructureRepaired);
+            GameEvents.OnKSCFacilityUpgraded.Add(KerbShoutHelper.Instance.OnKSCFacilityUpgraded);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -540,6 +541,7 @@ namespace KerbalSNS
             GameEvents.onVesselRecoveryProcessing.Remove(KerbShoutHelper.Instance.onVesselRecoveryProcessing);
             GameEvents.OnKSCStructureCollapsed.Remove(KerbShoutHelper.Instance.OnKSCStructureCollapsed);
             GameEvents.OnKSCStructureRepaired.Remove(KerbShoutHelper.Instance.OnKSCStructureRepaired);
+            GameEvents.OnKSCFacilityUpgraded.Remove(KerbShoutHelper.Instance.OnKSCFacilityUpgraded);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -710,6 +712,31 @@ namespace KerbalSNS
                         || (
                             x.gameEventSpecifics.HasValue("facility")
                             && x.gameEventSpecifics.GetValue("facility").Equals(facility)
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnKSCFacilityUpgraded(UpgradeableFacility facility, int oldLevel)
+        {
+            String[] idComponents = facility.id.Split('/');
+            String facilityName = idComponents[1];
+            
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnKSCFacilityUpgraded")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("facility")
+                            && x.gameEventSpecifics.GetValue("facility").Equals(facilityName)
                         )
                     )
                     && x.repLevel == getCurrentRepLevel()
