@@ -520,8 +520,11 @@ namespace KerbalSNS
         {
             GameEvents.OnOrbitalSurveyCompleted.Add(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
             GameEvents.onFlagPlant.Add(KerbShoutHelper.Instance.onFlagPlant);
-			GameEvents.OnExperimentDeployed.Add(KerbShoutHelper.Instance.OnExperimentDeployed);
+            GameEvents.OnExperimentDeployed.Add(KerbShoutHelper.Instance.OnExperimentDeployed);
             GameEvents.OnScienceRecieved.Add(KerbShoutHelper.Instance.OnScienceRecieved);
+            GameEvents.OnReputationChanged.Add(KerbShoutHelper.Instance.OnReputationChanged);
+            GameEvents.OnScienceChanged.Add(KerbShoutHelper.Instance.OnScienceChanged);
+            GameEvents.OnFundsChanged.Add(KerbShoutHelper.Instance.OnFundsChanged);
             GameEvents.OnCrewmemberHired.Add(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Add(KerbShoutHelper.Instance.OnCrewmemberSacked);
             GameEvents.onVesselRecoveryProcessing.Add(KerbShoutHelper.Instance.onVesselRecoveryProcessing);
@@ -534,8 +537,11 @@ namespace KerbalSNS
         {
             GameEvents.OnOrbitalSurveyCompleted.Remove(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
             GameEvents.onFlagPlant.Remove(KerbShoutHelper.Instance.onFlagPlant);
-			GameEvents.OnExperimentDeployed.Remove(KerbShoutHelper.Instance.OnExperimentDeployed);
+            GameEvents.OnExperimentDeployed.Remove(KerbShoutHelper.Instance.OnExperimentDeployed);
             GameEvents.OnScienceRecieved.Remove(KerbShoutHelper.Instance.OnScienceRecieved);
+            GameEvents.OnReputationChanged.Remove(KerbShoutHelper.Instance.OnReputationChanged);
+            GameEvents.OnScienceChanged.Remove(KerbShoutHelper.Instance.OnScienceChanged);
+            GameEvents.OnFundsChanged.Remove(KerbShoutHelper.Instance.OnFundsChanged);
             GameEvents.OnCrewmemberHired.Remove(KerbShoutHelper.Instance.OnCrewmemberHired);
             GameEvents.OnCrewmemberSacked.Remove(KerbShoutHelper.Instance.OnCrewmemberSacked);
             GameEvents.onVesselRecoveryProcessing.Remove(KerbShoutHelper.Instance.onVesselRecoveryProcessing);
@@ -629,6 +635,75 @@ namespace KerbalSNS
                     && x.repLevel == getCurrentRepLevel()
                 ),
                 vessel
+            );
+
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnReputationChanged(float latestReputation, TransactionReasons reason)
+        {
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnReputationChanged")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("reason")
+                            && x.gameEventSpecifics.GetValue("reason").Equals(KerbalSNSUtils.TransactionReasonToString(reason))
+                            // TODO maybe add another condition for latestReputation (e.g. if deltaRep eq certainAmt)
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnScienceChanged(float latestScience, TransactionReasons reason)
+        {
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnScienceChanged")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("reason")
+                            && x.gameEventSpecifics.GetValue("reason").Equals(KerbalSNSUtils.TransactionReasonToString(reason))
+                            // TODO maybe add another condition for latestScience (e.g. if deltaScience gte certainAmt)
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnFundsChanged(double latestFunds, TransactionReasons reason)
+        {
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnFundsChanged")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("reason")
+                            && x.gameEventSpecifics.GetValue("reason").Equals(KerbalSNSUtils.TransactionReasonToString(reason))
+                            // TODO maybe add another condition for latestFunds (e.g. if deltaFunds lte certainAmt)
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                )
             );
 
             if (shout != null)

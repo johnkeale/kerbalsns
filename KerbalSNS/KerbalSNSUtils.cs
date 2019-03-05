@@ -241,5 +241,117 @@ namespace KerbalSNS
 
             return years <= 1 ? "one year ago" : years + " years ago";
         }
+
+        public static String TransactionReasonToString(TransactionReasons reason)
+        {
+            if (reason == TransactionReasons.Any)
+            {
+                return "Any";
+            }
+            else if (reason == TransactionReasons.None)
+            {
+                return "None";
+            }
+            else if (reason == TransactionReasons.ContractAdvance)
+            {
+                return "ContractAdvance";
+            }
+            else if (reason == TransactionReasons.ContractReward)
+            {
+                return "ContractReward";
+            }
+            else if (reason == TransactionReasons.ContractPenalty)
+            {
+                return "ContractPenalty";
+            }
+            else if (reason == TransactionReasons.VesselRollout)
+            {
+                return "VesselRollout";
+            }
+            else if (reason == TransactionReasons.VesselRecovery)
+            {
+                return "VesselRecovery";
+            }
+            else if (reason == TransactionReasons.VesselLoss)
+            {
+                return "VesselLoss";
+            }
+            else if (reason == TransactionReasons.Vessels)
+            {
+                return "Vessels";
+            }
+            else if (reason == TransactionReasons.StrategyInput)
+            {
+                return "StrategyInput";
+            }
+            else if (reason == TransactionReasons.StrategyOutput)
+            {
+                return "StrategyOutput";
+            }
+            else if (reason == TransactionReasons.StrategySetup)
+            {
+                return "StrategySetup";
+            }
+            else if (reason == TransactionReasons.Strategies)
+            {
+                return "Strategies";
+            }
+            else if (reason == TransactionReasons.ScienceTransmission)
+            {
+                return "ScienceTransmission";
+            }
+            else if (reason == TransactionReasons.StructureRepair)
+            {
+                return "StructureRepair";
+            }
+            else if (reason == TransactionReasons.StructureCollapse)
+            {
+                return "StructureCollapse";
+            }
+            else if (reason == TransactionReasons.StructureConstruction)
+            {
+                return "StructureConstruction";
+            }
+            else if (reason == TransactionReasons.Structures)
+            {
+                return "Structures";
+            }
+            else if (reason == TransactionReasons.RnDTechResearch)
+            {
+                return "RnDTechResearch";
+            }
+            else if (reason == TransactionReasons.RnDPartPurchase)
+            {
+                return "RnDPartPurchase";
+            }
+            else if (reason == TransactionReasons.RnDs)
+            {
+                return "RnDs";
+            }
+            else if (reason == TransactionReasons.Cheating)
+            {
+                return "Cheating";
+            }
+            else if (reason == TransactionReasons.CrewRecruited)
+            {
+                return "CrewRecruited";
+            }
+            else if (reason == TransactionReasons.ContractDecline)
+            {
+                return "ContractDecline";
+            }
+            else if (reason == TransactionReasons.Contracts)
+            {
+                return "Contracts";
+            }
+            else if (reason == TransactionReasons.Progression)
+            {
+                return "Progression";
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }
