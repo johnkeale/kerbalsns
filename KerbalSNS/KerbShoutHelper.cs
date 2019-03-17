@@ -534,6 +534,7 @@ namespace KerbalSNS
             GameEvents.OnTechnologyResearched.Add(KerbShoutHelper.Instance.OnTechnologyResearched);
             GameEvents.OnPartPurchased.Add(KerbShoutHelper.Instance.OnPartPurchased);
             GameEvents.OnPartUpgradePurchased.Add(KerbShoutHelper.Instance.OnPartUpgradePurchased);
+            GameEvents.OnVesselRollout.Add(KerbShoutHelper.Instance.OnVesselRollout);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -554,6 +555,7 @@ namespace KerbalSNS
             GameEvents.OnTechnologyResearched.Remove(KerbShoutHelper.Instance.OnTechnologyResearched);
             GameEvents.OnPartPurchased.Remove(KerbShoutHelper.Instance.OnPartPurchased);
             GameEvents.OnPartUpgradePurchased.Remove(KerbShoutHelper.Instance.OnPartUpgradePurchased);
+            GameEvents.OnVesselRollout.Remove(KerbShoutHelper.Instance.OnVesselRollout);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -901,6 +903,35 @@ namespace KerbalSNS
             {
                 shout.postedText = shout.postedText.Replace("%p", title);
                 shout.postedText = shout.postedText.Replace("%m", manufacturer);
+
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnVesselRollout(ShipConstruct shipConstruct)
+        {
+            String vesselName = shipConstruct.shipName;
+            String facility = "";
+            if (shipConstruct.shipFacility == EditorFacility.SPH)
+            {
+                facility = "Spaceplane Hangar";
+            }
+            else if (shipConstruct.shipFacility == EditorFacility.VAB)
+            {
+                facility = "Vehicle Assembly Building";
+            }
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnVesselRollout")
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                shout.postedText = shout.postedText.Replace("%rv", vesselName);
+                shout.postedText = shout.postedText.Replace("%f", facility);
 
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
