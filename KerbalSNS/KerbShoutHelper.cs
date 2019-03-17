@@ -531,6 +531,9 @@ namespace KerbalSNS
             GameEvents.OnKSCStructureCollapsed.Add(KerbShoutHelper.Instance.OnKSCStructureCollapsed);
             GameEvents.OnKSCStructureRepaired.Add(KerbShoutHelper.Instance.OnKSCStructureRepaired);
             GameEvents.OnKSCFacilityUpgraded.Add(KerbShoutHelper.Instance.OnKSCFacilityUpgraded);
+            GameEvents.OnTechnologyResearched.Add(KerbShoutHelper.Instance.OnTechnologyResearched);
+            GameEvents.OnPartPurchased.Add(KerbShoutHelper.Instance.OnPartPurchased);
+            GameEvents.OnPartUpgradePurchased.Add(KerbShoutHelper.Instance.OnPartUpgradePurchased);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -548,6 +551,9 @@ namespace KerbalSNS
             GameEvents.OnKSCStructureCollapsed.Remove(KerbShoutHelper.Instance.OnKSCStructureCollapsed);
             GameEvents.OnKSCStructureRepaired.Remove(KerbShoutHelper.Instance.OnKSCStructureRepaired);
             GameEvents.OnKSCFacilityUpgraded.Remove(KerbShoutHelper.Instance.OnKSCFacilityUpgraded);
+            GameEvents.OnTechnologyResearched.Remove(KerbShoutHelper.Instance.OnTechnologyResearched);
+            GameEvents.OnPartPurchased.Remove(KerbShoutHelper.Instance.OnPartPurchased);
+            GameEvents.OnPartUpgradePurchased.Remove(KerbShoutHelper.Instance.OnPartUpgradePurchased);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -820,6 +826,82 @@ namespace KerbalSNS
 
             if (shout != null)
             {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnTechnologyResearched(HostTargetAction<RDTech, RDTech.OperationResult> hostTargetAction)
+        {
+            RDTech.OperationResult researchResult = hostTargetAction.target;
+            if (hostTargetAction.target == RDTech.OperationResult.Successful)
+            {
+                String techId = hostTargetAction.host.techID;
+                String name = hostTargetAction.host.name;
+                String description = hostTargetAction.host.description;
+
+                KerbShout shout = generateRandomGameEventShout(
+                    x => (
+                        x.gameEvent != null && x.gameEvent.Equals("OnTechnologyResearched")
+                        && (
+                            x.gameEventSpecifics == null
+                            || (
+                                x.gameEventSpecifics.HasValue("techId")
+                                && x.gameEventSpecifics.GetValue("techId").Equals(techId)
+                            )
+                        )
+                        && x.repLevel == getCurrentRepLevel()
+                    )
+                );
+
+                if (shout != null)
+                {
+                    // TODO maybe use the name and description somewhere?
+                    KerbalSNSScenario.Instance.RegisterShout(shout);
+                }
+            }
+        }
+
+        public void OnPartPurchased(AvailablePart availablePart)
+        {
+            // TODO make it so that only one shout is done per purchase
+            String name = availablePart.name;
+            String title = availablePart.title;
+            String manufacturer = availablePart.manufacturer;
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnPartPurchased")
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                shout.postedText = shout.postedText.Replace("%p", title);
+                shout.postedText = shout.postedText.Replace("%m", manufacturer);
+
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnPartUpgradePurchased(PartUpgradeHandler.Upgrade upgrade)
+        {
+            String name = upgrade.name;
+            String title = upgrade.title;
+            String manufacturer = upgrade.manufacturer;
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnPartUpgradePurchased")
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                shout.postedText = shout.postedText.Replace("%p", title);
+                shout.postedText = shout.postedText.Replace("%m", manufacturer);
+
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
