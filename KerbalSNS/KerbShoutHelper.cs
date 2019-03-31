@@ -535,6 +535,7 @@ namespace KerbalSNS
             GameEvents.OnPartPurchased.Add(KerbShoutHelper.Instance.OnPartPurchased);
             GameEvents.OnPartUpgradePurchased.Add(KerbShoutHelper.Instance.OnPartUpgradePurchased);
             GameEvents.OnVesselRollout.Add(KerbShoutHelper.Instance.OnVesselRollout);
+            GameEvents.OnProgressReached.Add(KerbShoutHelper.Instance.OnProgressReached);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -556,6 +557,7 @@ namespace KerbalSNS
             GameEvents.OnPartPurchased.Remove(KerbShoutHelper.Instance.OnPartPurchased);
             GameEvents.OnPartUpgradePurchased.Remove(KerbShoutHelper.Instance.OnPartUpgradePurchased);
             GameEvents.OnVesselRollout.Remove(KerbShoutHelper.Instance.OnVesselRollout);
+            GameEvents.OnProgressReached.Remove(KerbShoutHelper.Instance.OnProgressReached);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -933,6 +935,30 @@ namespace KerbalSNS
                 shout.postedText = shout.postedText.Replace("%rv", vesselName);
                 shout.postedText = shout.postedText.Replace("%f", facility);
 
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void OnProgressReached(ProgressNode progressNode)
+        {
+            // FIXME find a way to get the celestial body and add it as a filter
+            String progressNodeId = progressNode.Id;
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnProgressReached")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("progressNodeId")
+                            && x.gameEventSpecifics.GetValue("progressNodeId").Equals(progressNodeId)
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
