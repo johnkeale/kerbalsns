@@ -722,8 +722,9 @@ namespace KerbalSNS
             }
         }
 
-        public void OnCrewmemberHired(ProtoCrewMember protoCrewMember, int num)
+        public void OnCrewmemberHired(ProtoCrewMember protoCrewMember, int newActiveCrewCount)
         {
+            // TODO maybe randomize whether to shout or not
             KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberHired", protoCrewMember);
             if (shout != null)
             {
@@ -731,8 +732,9 @@ namespace KerbalSNS
             }
         }
 		
-        public void OnCrewmemberSacked(ProtoCrewMember protoCrewMember, int num)
+        public void OnCrewmemberSacked(ProtoCrewMember protoCrewMember, int newActiveCrewCount)
         {
+            // TODO maybe randomize whether to shout or not
             KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberSacked", protoCrewMember);
             if (shout != null)
             {
