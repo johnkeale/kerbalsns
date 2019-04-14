@@ -536,6 +536,8 @@ namespace KerbalSNS
             GameEvents.OnPartUpgradePurchased.Add(KerbShoutHelper.Instance.OnPartUpgradePurchased);
             GameEvents.OnVesselRollout.Add(KerbShoutHelper.Instance.OnVesselRollout);
             GameEvents.OnProgressReached.Add(KerbShoutHelper.Instance.OnProgressReached);
+            GameEvents.onCrewOnEva.Add(KerbShoutHelper.Instance.onCrewOnEva);
+            GameEvents.onCrewBoardVessel.Add(KerbShoutHelper.Instance.onCrewBoardVessel);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -558,6 +560,8 @@ namespace KerbalSNS
             GameEvents.OnPartUpgradePurchased.Remove(KerbShoutHelper.Instance.OnPartUpgradePurchased);
             GameEvents.OnVesselRollout.Remove(KerbShoutHelper.Instance.OnVesselRollout);
             GameEvents.OnProgressReached.Remove(KerbShoutHelper.Instance.OnProgressReached);
+            GameEvents.onCrewOnEva.Remove(KerbShoutHelper.Instance.onCrewOnEva);
+            GameEvents.onCrewBoardVessel.Remove(KerbShoutHelper.Instance.onCrewBoardVessel);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -961,6 +965,63 @@ namespace KerbalSNS
 
             if (shout != null)
             {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        void onCrewOnEva(GameEvents.FromToAction<Part, Part> fromToAction)
+        {
+            Part hatch = fromToAction.from;
+            Vessel vessel = hatch.vessel;
+
+            Part kerbalEVA = fromToAction.to;
+            Vessel kerbal = kerbalEVA.vessel;
+            ProtoCrewMember protoCrewMember = kerbal.GetVesselCrew().FirstOrDefault();
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("OnCrewOnEVA")
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("vesselSituation")
+                            && KerbalSNSUtils.DoesVesselSituationMatch(vessel, x.gameEventSpecifics.GetValue("vesselSituation"))
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                ),
+                vessel
+            );
+
+            if (shout != null)
+            {
+                shout.postedText = shout.postedText.Replace("%ek", protoCrewMember.name);
+
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        void onCrewBoardVessel(GameEvents.FromToAction<Part, Part> fromToAction)
+        {
+            // TODO check if kerbal is returning or enters the vessel for the first time
+            Part hatch = fromToAction.to;
+            Vessel vessel = hatch.vessel;
+
+            Part kerbalEVA = fromToAction.from;
+            Vessel kerbal = kerbalEVA.vessel;
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("onCrewBoardVessel")
+                    && x.repLevel == getCurrentRepLevel()
+                ),
+                vessel
+            );
+
+            if (shout != null)
+            {
+                shout.postedText = shout.postedText.Replace("%ek", kerbal.GetDisplayName());
+
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
