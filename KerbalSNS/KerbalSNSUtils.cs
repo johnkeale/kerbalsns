@@ -95,47 +95,50 @@ namespace KerbalSNS
             {
                 vesselSituation =
                     vesselSituation.Substring(body.name.Length, vesselSituation.Length - body.name.Length);
-
-                Vessel.Situations situation = Vessel.Situations.PRELAUNCH;
-                if (vesselSituation.Equals("Landed"))
-                {
-                    situation = Vessel.Situations.LANDED;
-                }
-                else if (vesselSituation.Equals("Splashed"))
-                {
-                    situation = Vessel.Situations.SPLASHED;
-                }
-                else if (vesselSituation.Equals("Prelaunch"))
-                {
-                    situation = Vessel.Situations.PRELAUNCH;
-                }
-                else if (vesselSituation.Equals("Flying"))
-                {
-                    situation = Vessel.Situations.FLYING;
-                }
-                else if (vesselSituation.Equals("SubOrbital"))
-                {
-                    situation = Vessel.Situations.SUB_ORBITAL;
-                }
-                else if (vesselSituation.Equals("Orbiting"))
-                {
-                    situation = Vessel.Situations.ORBITING;
-                }
-                else if (vesselSituation.Equals("Escaping"))
-                {
-                    situation = Vessel.Situations.ESCAPING;
-                }
-                else if (vesselSituation.Equals("Docked"))
-                {
-                    situation = Vessel.Situations.DOCKED;
-                }
-
-                return vessel.mainBody.Equals(body) && vessel.situation == situation;
+                
+                return vessel.mainBody.Equals(body) && vessel.situation == StringToSituation(vesselSituation);
             }
             else
             {
                 return false;
             }
+        }
+
+        public static Vessel.Situations StringToSituation(String situation)
+        {
+            if (situation.Equals("Landed"))
+            {
+                return Vessel.Situations.LANDED;
+            }
+            else if (situation.Equals("Splashed"))
+            {
+                return Vessel.Situations.SPLASHED;
+            }
+            else if (situation.Equals("Prelaunch"))
+            {
+                return Vessel.Situations.PRELAUNCH;
+            }
+            else if (situation.Equals("Flying"))
+            {
+                return Vessel.Situations.FLYING;
+            }
+            else if (situation.Equals("SubOrbital"))
+            {
+                return Vessel.Situations.SUB_ORBITAL;
+            }
+            else if (situation.Equals("Orbiting"))
+            {
+                return Vessel.Situations.ORBITING;
+            }
+            else if (situation.Equals("Escaping"))
+            {
+                return Vessel.Situations.ESCAPING;
+            }
+            else if (situation.Equals("Docked"))
+            {
+                return Vessel.Situations.DOCKED;
+            }
+            return Vessel.Situations.PRELAUNCH;
         }
 
         public static String RandomKerbalName()

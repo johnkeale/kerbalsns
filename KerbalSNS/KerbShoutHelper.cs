@@ -538,6 +538,8 @@ namespace KerbalSNS
             GameEvents.OnProgressReached.Add(KerbShoutHelper.Instance.OnProgressReached);
             GameEvents.onCrewOnEva.Add(KerbShoutHelper.Instance.onCrewOnEva);
             GameEvents.onCrewBoardVessel.Add(KerbShoutHelper.Instance.onCrewBoardVessel);
+            GameEvents.onVesselSituationChange.Add(onVesselSituationChange);
+            GameEvents.onVesselSOIChanged.Add(onVesselSOIChanged);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -562,6 +564,8 @@ namespace KerbalSNS
             GameEvents.OnProgressReached.Remove(KerbShoutHelper.Instance.OnProgressReached);
             GameEvents.onCrewOnEva.Remove(KerbShoutHelper.Instance.onCrewOnEva);
             GameEvents.onCrewBoardVessel.Remove(KerbShoutHelper.Instance.onCrewBoardVessel);
+            GameEvents.onVesselSituationChange.Remove(onVesselSituationChange);
+            GameEvents.onVesselSOIChanged.Remove(onVesselSOIChanged);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -1022,6 +1026,82 @@ namespace KerbalSNS
             {
                 shout.postedText = shout.postedText.Replace("%ek", kerbal.GetDisplayName());
 
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        void onVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> hostedFromToAction)
+        {
+            Vessel vessel = hostedFromToAction.host;
+            CelestialBody body = vessel.mainBody;
+            
+            Vessel.Situations fromSituation = hostedFromToAction.from;
+            Vessel.Situations toSituation = hostedFromToAction.to;
+
+            if (fromSituation != 0)
+            {
+                KerbShout shout = generateRandomGameEventShout(
+                    x => (
+                        x.gameEvent != null && x.gameEvent.Equals("onVesselSituationChange")
+                        && KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
+                        && (
+                            x.gameEventSpecifics == null
+                            || (
+                                (
+                                    x.gameEventSpecifics.HasValue("fromSituation")
+                                    && fromSituation == KerbalSNSUtils.StringToSituation(x.gameEventSpecifics.GetValue("fromSituation"))
+                                    && x.gameEventSpecifics.HasValue("toSituation")
+                                    && toSituation == KerbalSNSUtils.StringToSituation(x.gameEventSpecifics.GetValue("toSituation"))
+                                    && x.gameEventSpecifics.HasValue("bodyName")
+                                    && body.name.Equals(x.gameEventSpecifics.GetValue("bodyName"))
+                                )
+                                || (
+                                    !x.gameEventSpecifics.HasValue("fromSituation")
+                                    && x.gameEventSpecifics.HasValue("toSituation")
+                                    && toSituation == KerbalSNSUtils.StringToSituation(x.gameEventSpecifics.GetValue("toSituation"))
+                                    && x.gameEventSpecifics.HasValue("bodyName")
+                                    && body.name.Equals(x.gameEventSpecifics.GetValue("bodyName"))
+                                )
+                            )
+                        )
+                        && x.repLevel == getCurrentRepLevel()
+                    ),
+                    vessel
+                );
+
+                if (shout != null)
+                {
+                    KerbalSNSScenario.Instance.RegisterShout(shout);
+                }
+            }
+        }
+
+        void onVesselSOIChanged(GameEvents.HostedFromToAction<Vessel, CelestialBody> hostedFromToAction)
+        {
+            Vessel vessel = hostedFromToAction.host;
+            CelestialBody fromBody = hostedFromToAction.from;
+            CelestialBody toBody = hostedFromToAction.to;
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("onVesselSOIChanged")
+                    && KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
+                    && (
+                        x.gameEventSpecifics == null
+                        || (
+                            x.gameEventSpecifics.HasValue("fromBodyName")
+                            && fromBody.name == x.gameEventSpecifics.GetValue("fromBodyName")
+                            && x.gameEventSpecifics.HasValue("toBodyName")
+                            && toBody.name == x.gameEventSpecifics.GetValue("toBodyName")
+                        )
+                    )
+                    && x.repLevel == getCurrentRepLevel()
+                ),
+                vessel
+            );
+
+            if (shout != null)
+            {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
