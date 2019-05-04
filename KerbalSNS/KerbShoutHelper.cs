@@ -536,6 +536,7 @@ namespace KerbalSNS
             GameEvents.OnPartUpgradePurchased.Add(KerbShoutHelper.Instance.OnPartUpgradePurchased);
             GameEvents.OnVesselRollout.Add(KerbShoutHelper.Instance.OnVesselRollout);
             GameEvents.OnProgressReached.Add(KerbShoutHelper.Instance.OnProgressReached);
+            GameEvents.onVesselRename.Add(KerbShoutHelper.Instance.onVesselRename);
             GameEvents.onCrewOnEva.Add(KerbShoutHelper.Instance.onCrewOnEva);
             GameEvents.onCrewBoardVessel.Add(KerbShoutHelper.Instance.onCrewBoardVessel);
             GameEvents.onVesselSituationChange.Add(onVesselSituationChange);
@@ -562,6 +563,7 @@ namespace KerbalSNS
             GameEvents.OnPartUpgradePurchased.Remove(KerbShoutHelper.Instance.OnPartUpgradePurchased);
             GameEvents.OnVesselRollout.Remove(KerbShoutHelper.Instance.OnVesselRollout);
             GameEvents.OnProgressReached.Remove(KerbShoutHelper.Instance.OnProgressReached);
+            GameEvents.onVesselRename.Remove(KerbShoutHelper.Instance.onVesselRename);
             GameEvents.onCrewOnEva.Remove(KerbShoutHelper.Instance.onCrewOnEva);
             GameEvents.onCrewBoardVessel.Remove(KerbShoutHelper.Instance.onCrewBoardVessel);
             GameEvents.onVesselSituationChange.Remove(onVesselSituationChange);
@@ -969,6 +971,30 @@ namespace KerbalSNS
 
             if (shout != null)
             {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void onVesselRename(GameEvents.HostedFromToAction<Vessel, String> hostedFromToAction)
+        {
+            Vessel vessel = hostedFromToAction.host;
+            String oldName = hostedFromToAction.from;
+            String newName = hostedFromToAction.to;
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("onVesselRename")
+                    //&& KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
+                    && x.repLevel == getCurrentRepLevel()
+                ),
+                vessel
+            );
+
+            if (shout != null)
+            {
+                shout.postedText = shout.postedText.Replace("%ov", oldName);
+                shout.postedText = shout.postedText.Replace("%nv", newName);
+
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
