@@ -652,7 +652,7 @@ namespace KerbalSNS
                             && x.gameEventSpecifics.GetValue("situation").Equals(situation)
                         )
                     )
-                    && x.repLevel == getCurrentRepLevel()
+                    && x.repLevel == getCurrentRepLevel() // XXX maybe check only if there is repLevel?
                 ),
                 vessel
             );
@@ -999,7 +999,7 @@ namespace KerbalSNS
             }
         }
 
-        void onCrewOnEva(GameEvents.FromToAction<Part, Part> fromToAction)
+        public void onCrewOnEva(GameEvents.FromToAction<Part, Part> fromToAction)
         {
             Part hatch = fromToAction.from;
             Vessel vessel = hatch.vessel;
@@ -1014,7 +1014,7 @@ namespace KerbalSNS
                     && (
                         x.gameEventSpecifics == null
                         || (
-                            x.gameEventSpecifics.HasValue("vesselSituation")
+                            x.gameEventSpecifics.HasValue("vesselSituation") // XXX use shout.vesselSituation
                             && KerbalSNSUtils.DoesVesselSituationMatch(vessel, x.gameEventSpecifics.GetValue("vesselSituation"))
                         )
                     )
@@ -1031,7 +1031,7 @@ namespace KerbalSNS
             }
         }
 
-        void onCrewBoardVessel(GameEvents.FromToAction<Part, Part> fromToAction)
+        public void onCrewBoardVessel(GameEvents.FromToAction<Part, Part> fromToAction)
         {
             // TODO check if kerbal is returning or enters the vessel for the first time
             Part hatch = fromToAction.to;
@@ -1056,7 +1056,7 @@ namespace KerbalSNS
             }
         }
 
-        void onVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> hostedFromToAction)
+        public void onVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> hostedFromToAction)
         {
             Vessel vessel = hostedFromToAction.host;
             CelestialBody body = vessel.mainBody;
@@ -1102,7 +1102,7 @@ namespace KerbalSNS
             }
         }
 
-        void onVesselSOIChanged(GameEvents.HostedFromToAction<Vessel, CelestialBody> hostedFromToAction)
+        public void onVesselSOIChanged(GameEvents.HostedFromToAction<Vessel, CelestialBody> hostedFromToAction)
         {
             Vessel vessel = hostedFromToAction.host;
             CelestialBody fromBody = hostedFromToAction.from;
