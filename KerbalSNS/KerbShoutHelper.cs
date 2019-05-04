@@ -292,7 +292,7 @@ namespace KerbalSNS
             return shout;
         }
 
-        private KerbShout generateRandomGameEventCrewShout(String gameEvent, ProtoCrewMember protoCrewMember)
+        private KerbShout generateRandomGameEventCrewShout(String gameEvent, ProtoCrewMember protoCrewMember, String specialization)
         {
             List<KerbBaseShout> filteredBaseShoutList =
                 generateRandomBaseShouts(
@@ -300,6 +300,13 @@ namespace KerbalSNS
                     x => (
                         x.gameEvent != null && x.gameEvent.Equals(gameEvent)
                         && x.posterType.Equals(KerbBaseShout.PosterType_VesselCrew)
+                        && (
+                            x.gameEventSpecifics == null || specialization == null
+                            || (
+                                x.gameEventSpecifics.HasValue("specialization")
+                                && x.gameEventSpecifics.GetValue("specialization").Equals(specialization)
+                            )
+                        )
                         && x.repLevel == getCurrentRepLevel()
                     ),
                     1);
@@ -734,8 +741,10 @@ namespace KerbalSNS
 
         public void OnCrewmemberHired(ProtoCrewMember protoCrewMember, int newActiveCrewCount)
         {
+            String specialization = protoCrewMember.experienceTrait.TypeName;
+
             // TODO maybe randomize whether to shout or not
-            KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberHired", protoCrewMember);
+            KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberHired", protoCrewMember, specialization);
             if (shout != null)
             {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
@@ -744,8 +753,10 @@ namespace KerbalSNS
 		
         public void OnCrewmemberSacked(ProtoCrewMember protoCrewMember, int newActiveCrewCount)
         {
+            String specialization = protoCrewMember.experienceTrait.TypeName;
+
             // TODO maybe randomize whether to shout or not
-            KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberSacked", protoCrewMember);
+            KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberSacked", protoCrewMember, specialization);
             if (shout != null)
             {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
