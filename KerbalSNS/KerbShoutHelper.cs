@@ -103,7 +103,7 @@ namespace KerbalSNS
             double now = Planetarium.GetUniversalTime();
             List<KerbShout> updatedShoutList =
                 purgeOldShouts(shoutList, now, KSPUtil.dateTimeFormatter.Hour);
-
+            
             if (updatedShoutList.Count == 0 || updatedShoutList.Count < KerbalSNSSettings.NumOfShouts)
             {
                 int neededShoutCount = KerbalSNSSettings.NumOfShouts - updatedShoutList.Count; // FIXME this creates repLevel shouts based only on neededShouts, so the percentage will be off
@@ -162,7 +162,7 @@ namespace KerbalSNS
                     KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
             }
-
+            
             return updatedShoutList;
         }
 
@@ -755,6 +755,11 @@ namespace KerbalSNS
         public void onVesselRecoveryProcessing(ProtoVessel protoVessel, MissionRecoveryDialog dialog, float recoveredFundsPercentage)
         {
             Vessel vessel = protoVessel.vesselRef;
+            if (vessel.vesselType == VesselType.Debris || vessel.vesselType == VesselType.SpaceObject 
+                || vessel.vesselType == VesselType.Unknown)
+            {
+                return; // TODO consider if will also exclude EVA or Flag
+            }
 
             KerbShout shout = generateRandomGameEventShout(
                 x => (
