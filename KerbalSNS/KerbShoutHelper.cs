@@ -544,6 +544,8 @@ namespace KerbalSNS
             GameEvents.OnVesselRollout.Add(KerbShoutHelper.Instance.OnVesselRollout);
             GameEvents.OnProgressReached.Add(KerbShoutHelper.Instance.OnProgressReached);
             GameEvents.onVesselRename.Add(KerbShoutHelper.Instance.onVesselRename);
+            GameEvents.onAsteroidSpawned.Add(KerbShoutHelper.Instance.onAsteroidSpawned);
+            GameEvents.onKnowledgeChanged.Add(KerbShoutHelper.Instance.onKnowledgeChanged);
             GameEvents.onCrewOnEva.Add(KerbShoutHelper.Instance.onCrewOnEva);
             GameEvents.onCrewBoardVessel.Add(KerbShoutHelper.Instance.onCrewBoardVessel);
             GameEvents.onVesselSituationChange.Add(onVesselSituationChange);
@@ -571,6 +573,8 @@ namespace KerbalSNS
             GameEvents.OnVesselRollout.Remove(KerbShoutHelper.Instance.OnVesselRollout);
             GameEvents.OnProgressReached.Remove(KerbShoutHelper.Instance.OnProgressReached);
             GameEvents.onVesselRename.Remove(KerbShoutHelper.Instance.onVesselRename);
+            GameEvents.onAsteroidSpawned.Add(KerbShoutHelper.Instance.onAsteroidSpawned);
+            GameEvents.onKnowledgeChanged.Add(KerbShoutHelper.Instance.onKnowledgeChanged);
             GameEvents.onCrewOnEva.Remove(KerbShoutHelper.Instance.onCrewOnEva);
             GameEvents.onCrewBoardVessel.Remove(KerbShoutHelper.Instance.onCrewBoardVessel);
             GameEvents.onVesselSituationChange.Remove(onVesselSituationChange);
@@ -1013,6 +1017,52 @@ namespace KerbalSNS
 
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
+        }
+
+        private HashSet<String> shoutedAsteroidsCache;
+
+        public void onAsteroidSpawned(Vessel asteroid)
+        {
+            if (shoutedAsteroidsCache == null)
+            {
+                shoutedAsteroidsCache = new HashSet<string>();
+            }
+
+            String designatedName = asteroid.GetDisplayName();
+            CelestialBody mainBody = asteroid.mainBody;
+
+            if (shoutedAsteroidsCache.Contains(designatedName))
+            {
+                return; // for some reason, onAsteroidSpawned is getting called multiple times. A check was added to prevent spam shouts
+            }
+
+            shoutedAsteroidsCache.Add(designatedName);
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("onAsteroidSpawned")
+                    && x.repLevel == getCurrentRepLevel()
+                )
+            );
+
+            if (shout != null)
+            {
+                shout.postedText = shout.postedText.Replace("%a", designatedName);
+                shout.postedText = shout.postedText.Replace("%b", mainBody.name);
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+
+                // TODO add delayed shout if posterType is layKerbal
+            }
+        }
+
+        public void onKnowledgeChanged(HostedFromToAction<IDiscoverable, DiscoveryLevels> hostedFromToAction)
+        {
+            // TODO study discoverylevels
+            //IDiscoverable discoverable = hostedFromToAction.host;
+            //String discoverableName = discoverable.DiscoveryInfo.name.Value;
+
+            //DiscoveryLevels discoveryLevelFrom = hostedFromToAction.from;
+            //DiscoveryLevels discoveryLevelTo = hostedFromToAction.to;
         }
 
         public void onCrewOnEva(GameEvents.FromToAction<Part, Part> fromToAction)
