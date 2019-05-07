@@ -294,6 +294,11 @@ namespace KerbalSNS
 
         private KerbShout generateRandomGameEventCrewShout(String gameEvent, ProtoCrewMember protoCrewMember, String specialization)
         {
+            return generateRandomGameEventCrewShout(gameEvent, protoCrewMember, specialization, -1);
+        }
+
+        private KerbShout generateRandomGameEventCrewShout(String gameEvent, ProtoCrewMember protoCrewMember, String specialization, int newLevel)
+        {
             List<KerbBaseShout> filteredBaseShoutList =
                 generateRandomBaseShouts(
                     this.baseShoutList,
@@ -305,6 +310,13 @@ namespace KerbalSNS
                             || (
                                 x.gameEventSpecifics.HasValue("specialization")
                                 && x.gameEventSpecifics.GetValue("specialization").Equals(specialization)
+                                && !x.gameEventSpecifics.HasValue("newLevel")
+                            )
+                            || (
+                                x.gameEventSpecifics.HasValue("specialization")
+                                && x.gameEventSpecifics.GetValue("specialization").Equals(specialization)
+                                && x.gameEventSpecifics.HasValue("newLevel") && newLevel != -1
+                                && Convert.ToInt32(x.gameEventSpecifics.GetValue("newLevel")) == newLevel
                             )
                         )
                         && x.repLevel == getCurrentRepLevel()
@@ -550,6 +562,7 @@ namespace KerbalSNS
             GameEvents.onCrewBoardVessel.Add(KerbShoutHelper.Instance.onCrewBoardVessel);
             GameEvents.onVesselSituationChange.Add(onVesselSituationChange);
             GameEvents.onVesselSOIChanged.Add(onVesselSOIChanged);
+            GameEvents.onKerbalLevelUp.Add(KerbShoutHelper.Instance.onKerbalLevelUp);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -579,6 +592,7 @@ namespace KerbalSNS
             GameEvents.onCrewBoardVessel.Remove(KerbShoutHelper.Instance.onCrewBoardVessel);
             GameEvents.onVesselSituationChange.Remove(onVesselSituationChange);
             GameEvents.onVesselSOIChanged.Remove(onVesselSOIChanged);
+            GameEvents.onKerbalLevelUp.Remove(KerbShoutHelper.Instance.onKerbalLevelUp);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -1192,6 +1206,19 @@ namespace KerbalSNS
                 vessel
             );
 
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void onKerbalLevelUp(ProtoCrewMember protoCrewMember)
+        {
+            String specialization = protoCrewMember.experienceTrait.TypeName;
+            int newLevel = protoCrewMember.experienceLevel;
+
+            // TODO maybe randomize whether to shout or not
+            KerbShout shout = generateRandomGameEventCrewShout("onKerbalLevelUp", protoCrewMember, specialization, newLevel);
             if (shout != null)
             {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
