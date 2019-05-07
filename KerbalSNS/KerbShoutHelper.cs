@@ -560,8 +560,8 @@ namespace KerbalSNS
             GameEvents.onKnowledgeChanged.Add(KerbShoutHelper.Instance.onKnowledgeChanged);
             GameEvents.onCrewOnEva.Add(KerbShoutHelper.Instance.onCrewOnEva);
             GameEvents.onCrewBoardVessel.Add(KerbShoutHelper.Instance.onCrewBoardVessel);
-            GameEvents.onVesselSituationChange.Add(onVesselSituationChange);
-            GameEvents.onVesselSOIChanged.Add(onVesselSOIChanged);
+            GameEvents.onVesselSituationChange.Add(KerbShoutHelper.Instance.onVesselSituationChange);
+            GameEvents.onVesselSOIChanged.Add(KerbShoutHelper.Instance.onVesselSOIChanged);
             GameEvents.onKerbalLevelUp.Add(KerbShoutHelper.Instance.onKerbalLevelUp);
         }
 
@@ -590,8 +590,8 @@ namespace KerbalSNS
             GameEvents.onKnowledgeChanged.Add(KerbShoutHelper.Instance.onKnowledgeChanged);
             GameEvents.onCrewOnEva.Remove(KerbShoutHelper.Instance.onCrewOnEva);
             GameEvents.onCrewBoardVessel.Remove(KerbShoutHelper.Instance.onCrewBoardVessel);
-            GameEvents.onVesselSituationChange.Remove(onVesselSituationChange);
-            GameEvents.onVesselSOIChanged.Remove(onVesselSOIChanged);
+            GameEvents.onVesselSituationChange.Remove(KerbShoutHelper.Instance.onVesselSituationChange);
+            GameEvents.onVesselSOIChanged.Remove(KerbShoutHelper.Instance.onVesselSOIChanged);
             GameEvents.onKerbalLevelUp.Remove(KerbShoutHelper.Instance.onKerbalLevelUp);
         }
 
