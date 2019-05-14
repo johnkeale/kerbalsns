@@ -535,6 +535,8 @@ namespace KerbalSNS
 
         #region GameEvent methods
 
+        // https://kerbalspaceprogram.com/api/class_game_events.html
+
         public void AddGameEventsCallbacks()
         {
             GameEvents.OnOrbitalSurveyCompleted.Add(KerbShoutHelper.Instance.OnOrbitalSurveyCompleted);
