@@ -563,6 +563,7 @@ namespace KerbalSNS
             GameEvents.onVesselSituationChange.Add(KerbShoutHelper.Instance.onVesselSituationChange);
             GameEvents.onVesselSOIChanged.Add(KerbShoutHelper.Instance.onVesselSOIChanged);
             GameEvents.onKerbalLevelUp.Add(KerbShoutHelper.Instance.onKerbalLevelUp);
+            GameEvents.onFlightReady.Add(KerbShoutHelper.Instance.onFlightReady);
         }
 
         public void RemoveGameEventsCallbacks()
@@ -593,6 +594,7 @@ namespace KerbalSNS
             GameEvents.onVesselSituationChange.Remove(KerbShoutHelper.Instance.onVesselSituationChange);
             GameEvents.onVesselSOIChanged.Remove(KerbShoutHelper.Instance.onVesselSOIChanged);
             GameEvents.onKerbalLevelUp.Remove(KerbShoutHelper.Instance.onKerbalLevelUp);
+            GameEvents.onFlightReady.Remove(KerbShoutHelper.Instance.onFlightReady);
         }
 
         public void OnOrbitalSurveyCompleted(Vessel vessel, CelestialBody body)
@@ -1219,6 +1221,26 @@ namespace KerbalSNS
 
             // TODO maybe randomize whether to shout or not
             KerbShout shout = generateRandomGameEventCrewShout("onKerbalLevelUp", protoCrewMember, specialization, newLevel);
+            if (shout != null)
+            {
+                KerbalSNSScenario.Instance.RegisterShout(shout);
+            }
+        }
+
+        public void onFlightReady()
+        {
+            Vessel vessel = FlightGlobals.ActiveVessel;
+
+            KerbShout shout = generateRandomGameEventShout(
+                x => (
+                    x.gameEvent != null && x.gameEvent.Equals("onFlightReady")
+                    && KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
+                    && KerbalSNSUtils.DoesVesselSituationMatch(vessel, x.vesselSituation)
+                    && x.repLevel == getCurrentRepLevel()
+                ),
+                vessel
+            );
+
             if (shout != null)
             {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
