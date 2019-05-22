@@ -589,8 +589,8 @@ namespace KerbalSNS
             GameEvents.OnVesselRollout.Remove(KerbShoutHelper.Instance.OnVesselRollout);
             GameEvents.OnProgressReached.Remove(KerbShoutHelper.Instance.OnProgressReached);
             GameEvents.onVesselRename.Remove(KerbShoutHelper.Instance.onVesselRename);
-            GameEvents.onAsteroidSpawned.Add(KerbShoutHelper.Instance.onAsteroidSpawned);
-            GameEvents.onKnowledgeChanged.Add(KerbShoutHelper.Instance.onKnowledgeChanged);
+            GameEvents.onAsteroidSpawned.Remove(KerbShoutHelper.Instance.onAsteroidSpawned);
+            GameEvents.onKnowledgeChanged.Remove(KerbShoutHelper.Instance.onKnowledgeChanged);
             GameEvents.onCrewOnEva.Remove(KerbShoutHelper.Instance.onCrewOnEva);
             GameEvents.onCrewBoardVessel.Remove(KerbShoutHelper.Instance.onCrewBoardVessel);
             GameEvents.onVesselSituationChange.Remove(KerbShoutHelper.Instance.onVesselSituationChange);
