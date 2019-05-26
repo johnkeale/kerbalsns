@@ -54,6 +54,9 @@
     <Compile Include="KerbalSNSUtils.cs" />
     <Compile Include="KerbShout.cs" />
     <Compile Include="KerbShoutHelper.cs" />
+    <Compile Include="KerbShoutHelper.GameEventCallbacks.cs">
+	  <DependentUpon>KerbShoutHelper.cs</DependentUpon>
+	</Compile>
     <Compile Include="KerbStory.cs" />
     <Compile Include="KerbStoryHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
