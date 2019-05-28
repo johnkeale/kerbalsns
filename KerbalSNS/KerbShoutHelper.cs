@@ -185,39 +185,7 @@ namespace KerbalSNS
                     KerbBaseShout baseShout =
                         filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
 
-                    KerbShout.Acct postedBy = null;
-
-                    if (baseShout.posterType.Equals(KerbBaseShout.PosterType_Specific))
-                    {
-                        KerbalSNSScenario.Instance.SaveShoutAcct(baseShout.specificPoster);
-                        postedBy = baseShout.specificPoster;
-                    }
-                    else
-                    {
-                        if (baseShout.posterType.Equals(KerbBaseShout.PosterType_Any)
-                            || baseShout.posterType.Equals(KerbBaseShout.PosterType_LayKerbal))
-                        {
-                            postedBy = new KerbShout.Acct();
-                            postedBy.name = "TODO";
-
-                            postedBy.fullname = KerbalSNSUtils.RandomLayKerbalName();
-                            postedBy.username = "@" + makeLikeUsername(postedBy.fullname);
-                        }
-                        else if (baseShout.posterType.Equals(KerbBaseShout.PosterType_VesselCrew)
-                            || baseShout.posterType.Equals(KerbBaseShout.PosterType_KSCEmployee))
-                        {
-                            String fullname = baseShout.posterType.Equals(KerbBaseShout.PosterType_VesselCrew) ?
-                                KerbalSNSUtils.RandomActiveCrewKerbalName() :
-                                KerbalSNSUtils.RandomLayKerbalName();
-
-                            ensureKSCShoutAcctExists(fullname);
-                            postedBy = KerbalSNSScenario.Instance.FindShoutAcct(fullname);
-                        }
-                        else if (baseShout.posterType.Equals(KerbBaseShout.PosterType_KSC))
-                        {
-                            postedBy = KerbShout.Acct.KSC_OFFICIAL;
-                        }
-                    }
+                    KerbShout.Acct postedBy = generateShoutAcctFromBaseShout(baseShout);
 
                     KerbShout shout = createShout(baseShout, postedBy);
 
@@ -269,6 +237,45 @@ namespace KerbalSNS
             }
 
             return freshShoutsList;
+        }
+
+        public KerbShout.Acct generateShoutAcctFromBaseShout(KerbBaseShout baseShout)
+        {
+            if (baseShout.posterType.Equals(KerbBaseShout.PosterType_Specific))
+            {
+                KerbalSNSScenario.Instance.SaveShoutAcct(baseShout.specificPoster);
+                return baseShout.specificPoster;
+            }
+            else
+            {
+                if (baseShout.posterType.Equals(KerbBaseShout.PosterType_Any)
+                    || baseShout.posterType.Equals(KerbBaseShout.PosterType_LayKerbal))
+                {
+                    KerbShout.Acct shoutAcct = new KerbShout.Acct();
+                    shoutAcct.name = "TODO";
+
+                    shoutAcct.fullname = KerbalSNSUtils.RandomLayKerbalName();
+                    shoutAcct.username = "@" + makeLikeUsername(shoutAcct.fullname);
+
+                    return shoutAcct;
+                }
+                else if (baseShout.posterType.Equals(KerbBaseShout.PosterType_VesselCrew)
+                    || baseShout.posterType.Equals(KerbBaseShout.PosterType_KSCEmployee))
+                {
+                    String fullname = baseShout.posterType.Equals(KerbBaseShout.PosterType_VesselCrew) ?
+                        KerbalSNSUtils.RandomActiveCrewKerbalName() :
+                        KerbalSNSUtils.RandomLayKerbalName();
+
+                    ensureKSCShoutAcctExists(fullname);
+                    return KerbalSNSScenario.Instance.FindShoutAcct(fullname);
+                }
+                else if (baseShout.posterType.Equals(KerbBaseShout.PosterType_KSC))
+                {
+                    return KerbShout.Acct.KSC_OFFICIAL;
+                }
+            }
+
+            return null;
         }
 
         private KerbShout createShout(KerbBaseShout baseShout, KerbShout.Acct postedBy)
