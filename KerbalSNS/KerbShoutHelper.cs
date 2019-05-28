@@ -280,8 +280,8 @@ namespace KerbalSNS
             shout.postedBy = postedBy;
             shout.postedTime = Planetarium.GetUniversalTime();
 
-            shout.postedText =
-                Regex.Replace(baseShout.text, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
+            shout.postedText = baseShout.text;
+            formatShoutTags(shout);
 
             if (baseShout.text.Contains("%v") || baseShout.text.Contains("%k"))
             {
@@ -305,10 +305,21 @@ namespace KerbalSNS
                 }
             }
 
-            shout.postedText =
-                Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
+            formatShoutMentions(shout);
 
             return shout;
+        }
+
+        private void formatShoutTags(KerbShout shout)
+        {
+            shout.postedText =
+                Regex.Replace(shout.postedText, "#([\\w]+)", "<color=#29E667><u>#$1</u></color>", RegexOptions.IgnoreCase);
+        }
+
+        private void formatShoutMentions(KerbShout shout)
+        {
+            shout.postedText =
+                Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
         }
 
         private bool hasVesselViable(KerbBaseShout baseShout)
