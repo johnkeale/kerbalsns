@@ -112,7 +112,15 @@ namespace KerbalSNS
                     repLevelShoutCount -= outlierRepLevelShoutCount;
                 }
 
-                List<KerbBaseShout> filteredBaseShoutList = filterByVesselAndProgressStatus(baseShoutList);
+                List<KerbBaseShout> filteredBaseShoutList = baseShoutList.ToList();
+                filteredBaseShoutList =
+                    filteredBaseShoutList.Where(
+                        x => KerbalSNSUtils.HasAchievedAllProgressReqt(x.progressReqtArray)
+                    ).ToList();
+                filteredBaseShoutList =
+                    filteredBaseShoutList.Where(
+                        x => hasVesselViable(x)
+                    ).ToList();
 
                 List<KerbShout> repLevelShoutList =
                     generateRandomShouts(
@@ -160,21 +168,6 @@ namespace KerbalSNS
             }
 
             return updatedShoutList;
-        }
-
-        private List<KerbBaseShout> filterByVesselAndProgressStatus(List<KerbBaseShout> referenceBaseShoutList)
-        {
-            List<KerbBaseShout> filteredBaseShoutList = referenceBaseShoutList.ToList();
-            filteredBaseShoutList =
-                filteredBaseShoutList.Where(
-                    x => KerbalSNSUtils.HasAchievedAllProgressReqt(x.progressReqtArray)
-                ).ToList();
-            filteredBaseShoutList =
-                filteredBaseShoutList.Where(
-                    x => hasVesselViable(x)
-                ).ToList();
-
-            return filteredBaseShoutList;
         }
 
         private List<KerbShout> generateRandomShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count)
