@@ -71,9 +71,7 @@ namespace KerbalSNS
                 if (fullname != null)
                 {
                     posterType = KerbBaseShout.PosterType_VesselCrew;
-
-                    ensureKSCShoutAcctExists(fullname);
-                    postedBy = KerbalSNSScenario.Instance.FindShoutAcct(fullname);
+                    postedBy = ensureKSCShoutAcctExists(fullname);
                 }
             }
 
@@ -265,9 +263,8 @@ namespace KerbalSNS
                     String fullname = baseShout.posterType.Equals(KerbBaseShout.PosterType_VesselCrew) ?
                         KerbalSNSUtils.RandomActiveCrewKerbalName() :
                         KerbalSNSUtils.RandomLayKerbalName();
-
-                    ensureKSCShoutAcctExists(fullname);
-                    return KerbalSNSScenario.Instance.FindShoutAcct(fullname);
+                    
+                    return ensureKSCShoutAcctExists(fullname);
                 }
                 else if (baseShout.posterType.Equals(KerbBaseShout.PosterType_KSC))
                 {
@@ -304,8 +301,7 @@ namespace KerbalSNS
                     ProtoCrewMember randomKerbal = crewList[mizer.Next(crewList.Count)];
                     crewList.Remove(randomKerbal);
 
-                    ensureKSCShoutAcctExists(randomKerbal.name);
-                    KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(randomKerbal.name);
+                    KerbShout.Acct shoutAcct = ensureKSCShoutAcctExists(randomKerbal.name);
 
                     shout.postedText = shout.postedText.Replace("%k" + kerbalIndex, shoutAcct.username);
                     kerbalIndex++;
@@ -432,7 +428,7 @@ namespace KerbalSNS
             return KerbBaseShout.RepLevel_Any;
         }
 
-        private void ensureKSCShoutAcctExists(String fullname)
+        private KerbShout.Acct ensureKSCShoutAcctExists(String fullname)
         {
             KerbShout.Acct shoutAcct = KerbalSNSScenario.Instance.FindShoutAcct(fullname);
             if (shoutAcct == null)
@@ -445,6 +441,7 @@ namespace KerbalSNS
 
                 KerbalSNSScenario.Instance.SaveShoutAcct(shoutAcct);
             }
+            return shoutAcct;
         }
 
         public void RegenerateRandomShouts()
