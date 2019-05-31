@@ -89,6 +89,9 @@ namespace KerbalSNS
             baseShout.posterType = posterType;
 
             KerbShout shout = createShout(baseShout, postedBy);
+            formatShoutTags(shout);
+            formatShoutMentions(shout);
+
             return shout;
         }
 
@@ -186,6 +189,31 @@ namespace KerbalSNS
                     KerbShout.Acct postedBy = generateShoutAcctFromBaseShout(baseShout);
 
                     KerbShout shout = createShout(baseShout, postedBy);
+
+                    formatShoutTags(shout);
+
+                    if (baseShout.text.Contains("%v") || baseShout.text.Contains("%k"))
+                    {
+                        Vessel vessel = getRandomViableVessel(baseShout);
+                        shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
+
+                        int kerbalCount = Regex.Matches(baseShout.text, "%k").Count;
+
+                        int kerbalIndex = 1;
+                        List<ProtoCrewMember> crewList = vessel.GetVesselCrew().ToList();
+                        for (int k = 0; k < kerbalCount; k++)
+                        {
+                            ProtoCrewMember randomKerbal = crewList[mizer.Next(crewList.Count)];
+                            crewList.Remove(randomKerbal);
+
+                            KerbShout.Acct shoutAcct = ensureKSCShoutAcctExists(randomKerbal.name);
+
+                            shout.postedText = shout.postedText.Replace("%k" + kerbalIndex, shoutAcct.username);
+                            kerbalIndex++;
+                        }
+                    }
+
+                    formatShoutMentions(shout);
 
                     shoutList.Add(shout);
                 }
@@ -285,30 +313,6 @@ namespace KerbalSNS
             shout.postedTime = Planetarium.GetUniversalTime();
 
             shout.postedText = baseShout.text;
-            formatShoutTags(shout);
-
-            if (baseShout.text.Contains("%v") || baseShout.text.Contains("%k"))
-            {
-                Vessel vessel = getRandomViableVessel(baseShout);
-                shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
-
-                int kerbalCount = Regex.Matches(baseShout.text, "%k").Count;
-
-                int kerbalIndex = 1;
-                List<ProtoCrewMember> crewList = vessel.GetVesselCrew().ToList();
-                for (int i = 0; i < kerbalCount; i++)
-                {
-                    ProtoCrewMember randomKerbal = crewList[mizer.Next(crewList.Count)];
-                    crewList.Remove(randomKerbal);
-
-                    KerbShout.Acct shoutAcct = ensureKSCShoutAcctExists(randomKerbal.name);
-
-                    shout.postedText = shout.postedText.Replace("%k" + kerbalIndex, shoutAcct.username);
-                    kerbalIndex++;
-                }
-            }
-
-            formatShoutMentions(shout);
 
             return shout;
         }
