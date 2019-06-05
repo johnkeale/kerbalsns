@@ -181,6 +181,7 @@ namespace KerbalSNS
 
             if (filteredBaseShoutList.Count > 0)
             {
+                // FIXME will get stuck on an infinite loop if no shouts generated
                 for (int i = 0; i < neededShouts; i++)
                 {
                     KerbBaseShout baseShout =
@@ -195,6 +196,11 @@ namespace KerbalSNS
                     if (baseShout.text.Contains("%v") || baseShout.text.Contains("%k"))
                     {
                         Vessel vessel = getRandomViableVessel(baseShout);
+                        if (vessel == null)
+                        {
+                            continue;
+                        }
+
                         shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
 
                         int kerbalCount = Regex.Matches(baseShout.text, "%k").Count;
