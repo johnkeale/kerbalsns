@@ -229,28 +229,6 @@ namespace KerbalSNS
             return shoutList;
         }
 
-        private List<KerbBaseShout> generateRandomBaseShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count)
-        {
-            List<KerbBaseShout> filteredBaseShoutList = referenceBaseShoutList.Where(predicate).ToList();
-            int neededShouts = count == -1 ? filteredBaseShoutList.Count : count;
-
-            List <KerbBaseShout> randomBaseShoutList = new List<KerbBaseShout>();
-
-            if (filteredBaseShoutList.Count > 0)
-            {
-                for (int i = 0; i < neededShouts; i++)
-                {
-                    KerbBaseShout baseShout =
-                        filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
-					filteredBaseShoutList.Remove(baseShout);
-
-                    randomBaseShoutList.Add(baseShout);
-                }
-            }
-
-            return randomBaseShoutList;
-        }
-
         private List<KerbShout> purgeOldShouts(List<KerbShout> shoutList, double baseTime, double deltaTime)
         {
             List<KerbShout> freshShoutsList = new List<KerbShout>();
