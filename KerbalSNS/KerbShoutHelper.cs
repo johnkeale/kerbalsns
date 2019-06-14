@@ -142,7 +142,7 @@ namespace KerbalSNS
                 foreach (KerbShout shout in repLevelShoutList)
                 {
                     shout.postedTime = now - mizer.Next(KSPUtil.dateTimeFormatter.Hour) + 1; // set time to random time in most recent hour XXX
-                    updatedShoutList.Add(shout);
+                    updatedShoutList.Add(shout);  // XXX this list seems unnecessary
                     KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
 
@@ -181,11 +181,6 @@ namespace KerbalSNS
 
         private List<KerbShout> generateRandomShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count)
         {
-            return generateRandomShouts(referenceBaseShoutList, predicate, count, null);
-        }
-
-        private List<KerbShout> generateRandomShouts(List<KerbBaseShout> referenceBaseShoutList, Func<KerbBaseShout, bool> predicate, int count, Vessel vessel)
-        {
             List<KerbBaseShout> filteredBaseShoutList = referenceBaseShoutList.Where(predicate).ToList();
 
             int neededShouts = count == -1 ? filteredBaseShoutList.Count : count;
@@ -208,13 +203,10 @@ namespace KerbalSNS
 
                     if (baseShout.text.Contains("%v") || baseShout.text.Contains("%k"))
                     {
+                        Vessel vessel = getRandomViableVessel(baseShout);
                         if (vessel == null)
                         {
-                            vessel = getRandomViableVessel(baseShout);
-                            if (vessel == null)
-                            {
-                                continue;
-                            }
+                            continue;
                         }
 
                         shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());

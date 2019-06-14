@@ -14,35 +14,22 @@ namespace KerbalSNS
     {
         private KerbShout generateRandomGameEventShout(Func<KerbBaseShout, bool> predicate)
         {
-            return generateRandomGameEventShout(predicate, null);
-        }
+            List<KerbBaseShout> filteredBaseShoutList = this.baseShoutList.Where(predicate).ToList();
 
-        private KerbShout generateRandomGameEventShout(Func<KerbBaseShout, bool> predicate, Vessel vessel)
-        {
-            List<KerbShout> filteredShoutList =
-                generateRandomShouts(this.baseShoutList, predicate, 1, vessel);
+			KerbBaseShout baseShout = // XXX add null check
+				filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
 
-            if (filteredShoutList.Count() <= 0)
-            {
-                return null;
-            }
-
-            KerbShout shout = filteredShoutList.FirstOrDefault();
-            shout.postedTime = Planetarium.GetUniversalTime();
+			KerbShout shout = createShout(baseShout, generateShoutAcctFromBaseShout(baseShout));
+            formatShoutTags(shout);
+            formatShoutMentions(shout);
 			
             return shout;
-        }
-
-        private KerbShout generateRandomGameEventCrewShout(String gameEvent, ProtoCrewMember protoCrewMember, String specialization)
-        {
-            return generateRandomGameEventCrewShout(gameEvent, protoCrewMember, specialization, -1);
         }
 
         private KerbShout generateRandomGameEventCrewShout(String gameEvent, ProtoCrewMember protoCrewMember, String specialization, int newLevel)
         {
             List<KerbBaseShout> filteredBaseShoutList =
-                generateRandomBaseShouts(
-                    this.baseShoutList,
+				this.baseShoutList.Where(
                     x => (
                         x.gameEvent != null && x.gameEvent.Equals(gameEvent)
                         && x.posterType.Equals(KerbBaseShout.PosterType_VesselCrew)
@@ -61,21 +48,14 @@ namespace KerbalSNS
                             )
                         )
                         && x.repLevel == getCurrentRepLevel()
-                    ),
-                    1);
+                    )).ToList();
 
-            if (filteredBaseShoutList.Count() <= 0)
-            {
-                return null;
-            }
+			KerbBaseShout baseShout =
+				filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
 
-            KerbBaseShout baseShout = filteredBaseShoutList.FirstOrDefault();
-
-            ensureKSCShoutAcctExists(protoCrewMember.name);
-            KerbShout.Acct postedBy = KerbalSNSScenario.Instance.FindShoutAcct(protoCrewMember.name);
-
-            KerbShout shout = createShout(baseShout, postedBy);
-            shout.postedTime = Planetarium.GetUniversalTime();
+			KerbShout shout = createShout(baseShout, ensureKSCShoutAcctExists(protoCrewMember.name));
+            formatShoutTags(shout);
+            formatShoutMentions(shout);
 
             return shout;
         }
@@ -227,12 +207,12 @@ namespace KerbalSNS
                         )
                     )
                     && x.repLevel == getCurrentRepLevel() // XXX maybe check only if there is repLevel?
-                ),
-                vessel
+                )
             );
 
             if (shout != null)
             {
+                shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
@@ -311,7 +291,7 @@ namespace KerbalSNS
             String specialization = protoCrewMember.experienceTrait.TypeName;
 
             // TODO maybe randomize whether to shout or not
-            KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberHired", protoCrewMember, specialization);
+            KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberHired", protoCrewMember, specialization, -1);
             if (shout != null)
             {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
@@ -323,7 +303,7 @@ namespace KerbalSNS
             String specialization = protoCrewMember.experienceTrait.TypeName;
 
             // TODO maybe randomize whether to shout or not
-            KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberSacked", protoCrewMember, specialization);
+            KerbShout shout = generateRandomGameEventCrewShout("OnCrewmemberSacked", protoCrewMember, specialization, -1);
             if (shout != null)
             {
                 KerbalSNSScenario.Instance.RegisterShout(shout);
@@ -343,13 +323,13 @@ namespace KerbalSNS
                 x => (
                     x.gameEvent != null && x.gameEvent.Equals("onVesselRecoveryProcessing")
                     && x.repLevel == getCurrentRepLevel()
-                ),
-                vessel
+                )
             );
 
             if (shout != null)
             {
                 // TODO use recoveredFundsPercentage
+                shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
@@ -569,8 +549,7 @@ namespace KerbalSNS
                     x.gameEvent != null && x.gameEvent.Equals("onVesselRename")
                     //&& KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
                     && x.repLevel == getCurrentRepLevel()
-                ),
-                vessel
+                )
             );
 
             if (shout != null)
@@ -648,12 +627,12 @@ namespace KerbalSNS
                         )
                     )
                     && x.repLevel == getCurrentRepLevel()
-                ),
-                vessel
+                )
             );
 
             if (shout != null)
             {
+                shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
                 shout.postedText = shout.postedText.Replace("%ek", protoCrewMember.name);
 
                 KerbalSNSScenario.Instance.RegisterShout(shout);
@@ -673,12 +652,12 @@ namespace KerbalSNS
                 x => (
                     x.gameEvent != null && x.gameEvent.Equals("onCrewBoardVessel")
                     && x.repLevel == getCurrentRepLevel()
-                ),
-                vessel
+                )
             );
 
             if (shout != null)
             {
+                shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
                 shout.postedText = shout.postedText.Replace("%ek", kerbal.GetDisplayName());
 
                 KerbalSNSScenario.Instance.RegisterShout(shout);
@@ -720,12 +699,12 @@ namespace KerbalSNS
                             )
                         )
                         && x.repLevel == getCurrentRepLevel()
-                    ),
-                    vessel
+                    )
                 );
 
                 if (shout != null)
                 {
+                    shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
                     KerbalSNSScenario.Instance.RegisterShout(shout);
                 }
             }
@@ -751,12 +730,12 @@ namespace KerbalSNS
                         )
                     )
                     && x.repLevel == getCurrentRepLevel()
-                ),
-                vessel
+                )
             );
 
             if (shout != null)
             {
+                shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
@@ -784,12 +763,12 @@ namespace KerbalSNS
                     && KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
                     && KerbalSNSUtils.DoesVesselSituationMatch(vessel, x.vesselSituation)
                     && x.repLevel == getCurrentRepLevel()
-                ),
-                vessel
+                )
             );
 
             if (shout != null)
             {
+                shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
                 KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
