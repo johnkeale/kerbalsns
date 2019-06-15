@@ -96,11 +96,15 @@ namespace KerbalSNS
                 this.isRepeatable = "True".Equals(node.GetValue("isRepeatable"));
             }
 
-            this.vesselType = KerbalSNSUtils.VesselTypeAny;
+            this.vesselType = KerbalSNSUtils.VesselTypeNone;
             if (node.HasValue("vesselType"))
             {
                 String vesselType = node.GetValue("vesselType");
-                if (vesselType.Equals("probe"))
+                if (vesselType.Equals("any"))
+                {
+                    this.vesselType = KerbalSNSUtils.VesselTypeAny;
+                }
+                else if (vesselType.Equals("probe"))
                 {
                     this.vesselType = (int)VesselType.Probe;
                 }
@@ -229,8 +233,11 @@ namespace KerbalSNS
                     node.SetValue("vesselType", "flag", true);
                     break;
                 case KerbalSNSUtils.VesselTypeAny:
-                default:
                     node.SetValue("vesselType", "any", true);
+                    break;
+                case KerbalSNSUtils.VesselTypeNone:
+                default:
+                    node.SetValue("vesselType", "none", true);
                     break;
             }
 
