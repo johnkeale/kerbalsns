@@ -120,7 +120,7 @@ namespace KerbalSNS
                     ).ToList();
                 filteredBaseShoutList =
                     filteredBaseShoutList.Where(
-                        x => hasVesselViable(x)
+                        x => !needsVessel(x) || getRandomViableVessel(x) != null
                     ).ToList();
 
                 List<KerbShout> repLevelShoutList =
@@ -181,7 +181,6 @@ namespace KerbalSNS
 
             if (filteredBaseShoutList.Count > 0)
             {
-                // FIXME will get stuck on an infinite loop if no shouts generated
                 for (int i = 0; i < neededShouts; i++)
                 {
                     KerbBaseShout baseShout =
@@ -313,11 +312,11 @@ namespace KerbalSNS
                 Regex.Replace(shout.postedText, "@([\\w]+)", "<color=#6F8E2F><u>@$1</u></color>", RegexOptions.IgnoreCase);
         }
 
-        private bool hasVesselViable(KerbBaseShout baseShout)
+        private bool needsVessel(KerbBaseShout baseShout)
         {
-            return baseShout.vesselType == KerbalSNSUtils.VesselTypeAny
-                || baseShout.vesselSituation == null
-                || getRandomViableVessel(baseShout) != null;
+            return baseShout.posterType.Equals(KerbBaseShout.PosterType_VesselCrew)
+                || baseShout.vesselType != KerbalSNSUtils.VesselTypeNone
+                || baseShout.vesselSituation != null;
         }
 
         private Vessel getRandomViableVessel(KerbBaseShout baseShout)
@@ -337,6 +336,10 @@ namespace KerbalSNS
         private bool isVesselViable(KerbBaseShout baseShout, Vessel vessel)
         {
             int kerbalCount = Regex.Matches(baseShout.text, "%k").Count;
+            if (kerbalCount == 0 && baseShout.posterType.Equals(KerbBaseShout.PosterType_VesselCrew))
+            {
+                kerbalCount = 1;
+            }
 
             return KerbalSNSUtils.HasEnoughCrew(vessel, kerbalCount)
                 && KerbalSNSUtils.IsVesselTypeCorrect(vessel, baseShout.vesselType)

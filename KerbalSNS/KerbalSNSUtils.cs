@@ -7,6 +7,7 @@ namespace KerbalSNS
 {
     class KerbalSNSUtils
     {
+        public const int VesselTypeNone = -2;
         public const int VesselTypeAny = -1;
 
         private static System.Random mizer = new System.Random();

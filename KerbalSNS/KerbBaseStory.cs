@@ -65,6 +65,7 @@ namespace KerbalSNS
                 this.isRepeatable = "True".Equals(node.GetValue("isRepeatable"));
             }
 
+            // Unlike shouts, stories are supposed to happen on vessels, so VesselTypeNone is not applicable here
             this.vesselType = KerbalSNSUtils.VesselTypeAny;
             if (node.HasValue("vesselType"))
             {
