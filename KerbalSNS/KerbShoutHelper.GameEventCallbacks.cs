@@ -15,6 +15,10 @@ namespace KerbalSNS
         private KerbShout generateRandomGameEventShout(Func<KerbBaseShout, bool> predicate)
         {
             List<KerbBaseShout> filteredBaseShoutList = this.baseShoutList.Where(predicate).ToList();
+            if (filteredBaseShoutList.Count == 0)
+            {
+                return null;
+            }
 
 			KerbBaseShout baseShout = // XXX add null check
 				filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
@@ -49,8 +53,12 @@ namespace KerbalSNS
                         )
                         && x.repLevel == getCurrentRepLevel()
                     )).ToList();
+            if (filteredBaseShoutList.Count == 0)
+            {
+                return null;
+            }
 
-			KerbBaseShout baseShout =
+            KerbBaseShout baseShout =
 				filteredBaseShoutList[mizer.Next(filteredBaseShoutList.Count)];
 
 			KerbShout shout = createShout(baseShout, ensureKSCShoutAcctExists(protoCrewMember.name));
