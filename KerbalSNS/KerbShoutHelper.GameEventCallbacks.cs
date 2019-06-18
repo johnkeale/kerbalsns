@@ -145,7 +145,8 @@ namespace KerbalSNS
 
             if (shout != null)
             {
-				KerbalSNSScenario.Instance.RegisterShout(shout);
+                shout.postedText = shout.postedText.Replace("%v", vessel.GetDisplayName());
+                KerbalSNSScenario.Instance.RegisterShout(shout);
             }
         }
 
