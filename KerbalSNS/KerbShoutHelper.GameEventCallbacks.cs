@@ -552,6 +552,12 @@ namespace KerbalSNS
             String oldName = hostedFromToAction.from;
             String newName = hostedFromToAction.to;
 
+            // TODO make it possible to also generate shout if only the type was changed
+            if (oldName.Equals(newName))
+            {
+                return;
+            }
+
             KerbShout shout = generateRandomGameEventShout(
                 x => (
                     x.gameEvent != null && x.gameEvent.Equals("onVesselRename")
