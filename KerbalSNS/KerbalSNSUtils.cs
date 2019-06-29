@@ -73,6 +73,26 @@ namespace KerbalSNS
                 || (vessel.vesselType == (VesselType)vesselType);
         }
 
+        public static bool DoesVesselSituationMatch(Vessel vessel, CelestialBody body, String vesselSituation)
+        {
+            if (vesselSituation == null)
+            {
+                return true;
+            }
+            
+            if (vesselSituation.StartsWith(body.name))
+            {
+                vesselSituation =
+                    vesselSituation.Substring(body.name.Length, vesselSituation.Length - body.name.Length);
+
+                return vessel.mainBody.Equals(body) && vessel.situation == StringToSituation(vesselSituation);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        
         public static bool DoesVesselSituationMatch(Vessel vessel, String vesselSituation)
         {
             if (vesselSituation == null)
@@ -82,16 +102,6 @@ namespace KerbalSNS
 
             CelestialBody body =
                 FlightGlobals.Bodies.FirstOrDefault(b => vesselSituation.StartsWith(b.name));
-            return DoesVesselSituationMatch(vessel, body, vesselSituation);
-        }
-
-        public static bool DoesVesselSituationMatch(Vessel vessel, CelestialBody body, String vesselSituation)
-        {
-            if (vesselSituation == null)
-            {
-                return true;
-            }
-
             if (body != null)
             {
                 vesselSituation =

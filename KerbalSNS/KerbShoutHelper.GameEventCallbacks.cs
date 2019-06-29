@@ -138,8 +138,7 @@ namespace KerbalSNS
 				x => (
 					x.gameEvent != null && x.gameEvent.Equals("OnOrbitalSurveyCompleted")
 					&& KerbalSNSUtils.IsVesselTypeCorrect(vessel, x.vesselType)
-					&& KerbalSNSUtils.DoesVesselSituationMatch(vessel, x.vesselSituation)
-                    && (x.vesselSituation != null && x.vesselSituation.StartsWith(body.name))
+					&& KerbalSNSUtils.DoesVesselSituationMatch(vessel, body, x.vesselSituation)
 					&& x.repLevel == getCurrentRepLevel()
 				)
 			);
